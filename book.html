@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>Book page turn</title>
+	<style>
+		.book {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-width: 44px;
+			min-height: 44px;
+			color: inherit;
+		}
+
+		.book svg {
+			width: 92px;
+			height: 92px;
+			stroke: currentColor;
+			stroke-width: 1.2;
+			stroke-linecap: round;
+		}
+
+		.book__page {
+			transform-box: view-box;
+			transform-origin: 11.5px 11px;
+			transform: rotate(0deg);
+		}
+
+		.book[data-flipping] .book__page {
+			animation:
+				book-flip 360ms ease-in-out,
+				book-flip-back 360ms ease-in-out;
+			animation-delay: var(--delay), calc(660ms + var(--delay));
+		}
+
+		@keyframes book-flip {
+			from {
+				transform: rotate(0deg);
+			}
+			to {
+				transform: rotate(360deg);
+			}
+		}
+
+		@keyframes book-flip-back {
+			from {
+				transform: rotate(0deg);
+			}
+			to {
+				transform: rotate(-360deg);
+			}
+		}
+	</style>
+
+	<p>Hover over the book or select Play flip. With Reduce Motion enabled, use Play flip.</p>
+	<button class="book" type="button" data-book aria-label="Turn book pages">
+		<svg viewBox="0 0 23 23" fill="none" aria-hidden="true">
+			<path class="book__page" style="--delay: 0ms" d="M11.5 11V1" />
+			<path class="book__page" style="--delay: 75ms" d="M11.5 11V1" />
+			<path class="book__page" style="--delay: 150ms" d="M11.5 11V1" />
+			<path class="book__page" style="--delay: 225ms" d="M11.5 11V1" />
+			<path class="book__page" style="--delay: 300ms" d="M11.5 11V1" />
+		</svg>
+	</button>
+	<button type="button" id="play">Play flip</button>
+
+	<script>
+		for (const book of document.querySelectorAll('[data-book]')) {
+			function flip() {
+				if (book.hasAttribute('data-flipping')) return;
+
+				book.setAttribute('data-flipping', '');
+				const turns = [...book.querySelectorAll('.book__page')].flatMap((page) =>
+					page.getAnimations()
+				);
+				if (!turns.length) {
+					book.removeAttribute('data-flipping');
+					return;
+				}
+
+				Promise.allSettled(turns.map((turn) => turn.finished)).then(() => {
+					book.removeAttribute('data-flipping');
+				});
+			}
+
+			book.addEventListener('pointerenter', (event) => {
+				if (
+					event.pointerType !== 'touch' &&
+					!matchMedia('(prefers-reduced-motion: reduce)').matches
+				) {
+					flip();
+				}
+			});
+			book.addEventListener('click', flip);
+			document.querySelector('#play').addEventListener('click', flip);
+		}
+	</script>
+</html>
