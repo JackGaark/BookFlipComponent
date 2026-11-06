@@ -22,6 +22,8 @@ import { paraglideMiddleware } from '#lib/paraglide/server.js';
 	event,
 	resolve
 }) => {
+	if (!auth) return resolve(event);
+
 	const session = await auth.api.getSession({ headers: event.request.headers });
 
 	if (session) {

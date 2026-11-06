@@ -1,13 +1,15 @@
 import { defineConfig } from 'drizzle-kit';
 
-if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is not set');
+// `drizzle-kit generate` only reads the schema, so it runs without credentials.
+// Commands that connect (push, migrate, studio) need DATABASE_URL (and DATABASE_AUTH_TOKEN for Turso).
+const url = process.env.DATABASE_URL || 'file:local.db';
 
 export default defineConfig({
 	schema: './src/lib/server/db/schema.js',
 	dialect: 'turso',
 	dbCredentials: {
 		authToken: process.env.DATABASE_AUTH_TOKEN,
-		url: process.env.DATABASE_URL
+		url
 	},
 	verbose: true,
 	strict: true
