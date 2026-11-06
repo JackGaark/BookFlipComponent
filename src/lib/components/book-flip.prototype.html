@@ -1,0 +1,104 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Book flip logic prototype</title>
+<style>
+:root{font-family:var(--font-sans,system-ui);color:var(--foreground,#252128);--accent-color:#bd62ff}
+body{margin:0}h1{font-size:22px;margin:12px 0}p{line-height:1.5;color:var(--muted-foreground,#777)}h2{font-size:16px;margin:20px 0 10px}button{font:inherit;padding:9px 12px;border:1px solid var(--border,#aaa);border-radius:6px;background:var(--card,#fff);color:inherit;cursor:pointer}button:focus-visible{outline:3px solid var(--accent-color)}button:disabled{opacity:.4;cursor:default}button[aria-selected=true]{border-color:var(--accent-color);box-shadow:inset 0 -3px var(--accent-color)}.buttons{display:flex;flex-wrap:wrap;gap:7px}dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;background:var(--card,#f5f3f7);border-radius:var(--radius,8px);padding:16px}dt{font-size:12px;color:var(--muted-foreground,#777)}dd{margin:4px 0 0;font-weight:600;overflow-wrap:anywhere}.changed{border-left:3px solid var(--accent-color);padding-left:8px}#steps{display:flex;flex-wrap:wrap;gap:8px}#log{max-height:160px;overflow:auto;padding-left:22px;font-size:13px;line-height:1.6}.note{font-size:13px}#outcome{min-height:24px}
+</style><body><h1>Book flip · logic prototype</h1>
+<p>Can the book finish one smooth sequence at a time, continue only when a held slider moves, and safely ignore overlapping clicks and late completion signals?</p>
+<p class="note">Throwaway exploration. Nothing is saved. “Pages finish turning” stands in for the existing 1.32-second sequence (360 ms turns, 75 ms page stagger). Intentional clicks and slider movement still play with Reduce Motion; hover does not.</p>
+<h2>Current state</h2><dl id="state" aria-live="polite"></dl><p id="outcome" aria-live="polite"></p>
+<h2>Try any action</h2><div class="buttons" id="free"></div>
+<h2>Guided walkthroughs</h2><div class="buttons" id="tabs" role="tablist" aria-label="Scenarios"></div><p id="description"></p><div id="steps"></div>
+<h2>What happened</h2><ol id="log"></ol>
+<script>/* PORTABLE: production reducer; no DOM, clocks, or animation objects. */
+/**
+ * @typedef {'hover' | 'click' | 'slider'} Trigger
+ * @typedef {{status: 'idle' | 'flipping' | 'gone', run: number, trigger: Trigger | null,
+ * held: boolean, moved: boolean, reducedMotion: boolean, finePointer: boolean}} FlipState
+ * @typedef {{type: 'environment', reducedMotion: boolean, finePointer: boolean} |
+ * {type: 'hover' | 'click' | 'sliderGrab' | 'sliderMove' | 'sliderRelease' | 'unmount'} |
+ * {type: 'finished' | 'cancelled', run: number}} FlipAction
+ */
+
+/** @type {FlipState} */
+const initialBookFlip = {
+  status: 'idle', run: 0, trigger: null, held: false, moved: false,
+  reducedMotion: true, finePointer: false
+};
+
+/** @param {FlipState} state @param {Trigger} trigger @returns {FlipState} */
+function begin(state, trigger) {
+  return { ...state, status: 'flipping', run: state.run + 1, trigger, moved: false };
+}
+
+/** @param {FlipState} state @param {FlipAction} action @returns {FlipState} */
+function bookFlip(state, action) {
+  if (state.status === 'gone') return state;
+  switch (action.type) {
+    case 'environment':
+      return state.reducedMotion === action.reducedMotion && state.finePointer === action.finePointer
+        ? state : { ...state, reducedMotion: action.reducedMotion, finePointer: action.finePointer };
+    case 'hover':
+      return state.status === 'idle' && !state.reducedMotion && state.finePointer
+        ? begin(state, 'hover') : state;
+    case 'click':
+      return state.status === 'idle' ? begin(state, 'click') : state;
+    case 'sliderGrab':
+      return state.held ? state : { ...state, held: true };
+    case 'sliderMove':
+      if (state.status === 'idle') return begin(state, 'slider');
+      return state.held && !state.moved ? { ...state, moved: true } : state;
+    case 'sliderRelease':
+      return state.held || state.moved ? { ...state, held: false, moved: false } : state;
+    case 'finished':
+    case 'cancelled':
+      if (state.status !== 'flipping' || action.run !== state.run) return state;
+      if (action.type === 'finished' && state.held && state.moved) return begin(state, 'slider');
+      return { ...state, status: 'idle', trigger: null, moved: false };
+    case 'unmount':
+      return { ...state, status: 'gone', trigger: null, held: false, moved: false };
+  }
+}
+
+/** @param {FlipState} state */
+const flipAttribute = (state) => state.status === 'flipping'
+  ? (state.trigger === 'hover' ? '' : 'requested') : null;
+</script><script>
+const byId=id=>document.getElementById(id);
+const actionLabels={hover:'Mouse hovers book',click:'Click book',sliderGrab:'Grab slider',sliderMove:'Move slider',reverse:'Reverse slider',sliderRelease:'Release slider',finished:'Pages finish turning',late:'Late finish from previous run',cancelled:'Animation interrupted',unmount:'Remove book',motion:'Toggle Reduce Motion',pointer:'Toggle mouse / touch'};
+let state, previous, step=0, selected=0;
+const scenarios=[
+ ['Hover and click','An extra click never restarts or queues a running sequence.',['hover','click','finished']],
+ ['Long drag','Reversals keep the current run. Movement while held earns one continuation; release clears it.',['sliderGrab','sliderMove','reverse','finished','sliderMove','sliderRelease','finished']],
+ ['Quick flick','Release before completion: one sequence, then rest.',['sliderGrab','sliderMove','sliderRelease','finished']],
+ ['Hold still','Two movement events earn one continuation. Holding still through the next run does not repeat again.',['sliderGrab','sliderMove','sliderMove','finished','finished','sliderRelease']],
+ ['Nudges','Without a grab, keyboard or assistive input plays once. Extra moves cannot queue turns.',['sliderMove','sliderMove','finished']],
+ ['Reduce Motion','Hover is suppressed. Intentional click and slider actions preserve the existing interaction.',['motion','hover','click','finished','sliderGrab','sliderMove','sliderRelease','finished']],
+ ['Touch','Touch does not hover. Dragging still turns pages.',['pointer','hover','sliderGrab','sliderMove','sliderRelease','finished']],
+ ['Late signals','Old finishes are ignored. Removing the book makes every subsequent event harmless.',['click','finished','click','late','unmount','finished','sliderMove']],
+ ['Interrupted run','Cancellation settles without continuing, even when the slider has moved.',['sliderGrab','sliderMove','sliderMove','cancelled','sliderRelease']]
+];
+function initial(){return bookFlip(initialBookFlip,{type:'environment',reducedMotion:false,finePointer:true})}
+function reset(){state=initial();previous=null;step=0;byId('log').replaceChildren();byId('outcome').textContent='Ready. Choose an action or follow the steps.';render()}
+function dispatch(name){
+ let action={type:name};
+ if(name==='reverse')action={type:'sliderMove'};
+ if(name==='finished'||name==='cancelled')action={type:name,run:state.run};
+ if(name==='late')action={type:'finished',run:state.run-1};
+ if(name==='motion')action={type:'environment',reducedMotion:!state.reducedMotion,finePointer:state.finePointer};
+ if(name==='pointer')action={type:'environment',reducedMotion:state.reducedMotion,finePointer:!state.finePointer};
+ previous=state;state=bookFlip(state,action);
+ const ignored=previous===state;
+ let reason=state.status==='gone'?'the book is removed':name==='late'?'that run is no longer current':name==='hover'&&(state.reducedMotion||!state.finePointer)?'hover is unavailable':state.status==='flipping'?'the current sequence keeps running':'no state change is needed';
+ const message=actionLabels[name]+(ignored?' — ignored: '+reason: ' — accepted');
+ byId('outcome').textContent=message;const li=document.createElement('li');li.textContent=message;byId('log').prepend(li);render();
+}
+function render(){
+ const fields=[['status','Book',{idle:'Resting',flipping:'Turning pages',gone:'Removed'}[state.status]],['run','Run number',state.run],['trigger','Started by',state.trigger||'—'],['held','Slider held',state.held?'Yes':'No'],['moved','Moved again this run',state.moved?'Yes':'No'],['reducedMotion','Reduce Motion',state.reducedMotion?'On':'Off'],['finePointer','Pointer',state.finePointer?'Mouse':'Touch'],['next','When pages finish',state.status==='gone'?'Ignore':state.status==='flipping'&&state.held&&state.moved?'Turn again':'Come to rest'],['attribute','Animation attribute',flipAttribute(state)===null?'Absent':JSON.stringify(flipAttribute(state))]];
+ byId('state').replaceChildren(...fields.map(([key,label,value])=>{const div=document.createElement('div');if(previous&&key in state&&previous[key]!==state[key])div.className='changed';const dt=document.createElement('dt');dt.textContent=label;const dd=document.createElement('dd');dd.textContent=value;div.append(dt,dd);return div}));
+ byId('tabs').replaceChildren(...scenarios.map(([label],i)=>{const b=document.createElement('button');b.textContent=label;b.setAttribute('role','tab');b.setAttribute('aria-selected',String(i===selected));b.onclick=()=>{selected=i;reset()};return b}));
+ byId('description').textContent=scenarios[selected][1];
+ byId('steps').replaceChildren(...scenarios[selected][2].map((name,i)=>{const b=document.createElement('button');b.textContent=(i+1)+'. '+actionLabels[name];b.disabled=i!==step;b.onclick=()=>{step++;dispatch(name)};return b}));
+}
+for(const [name,label] of Object.entries(actionLabels)){const b=document.createElement('button');b.textContent=label;b.onclick=()=>dispatch(name);byId('free').append(b)}
+const resetButton=document.createElement('button');resetButton.textContent='Reset';resetButton.onclick=reset;byId('free').append(resetButton);reset();
+</script></body></html>
