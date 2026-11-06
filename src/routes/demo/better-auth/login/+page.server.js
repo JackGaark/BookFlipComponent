@@ -1,17 +1,20 @@
 import { fail, redirect } from '@sveltejs/kit';
 
-import { auth } from '#lib/server/auth.js';
+import { auth, authEnabled, githubEnabled } from '#lib/server/auth.js';
 import { APIError } from 'better-auth/api';
 
 export const load = (event) => {
 	if (event.locals.user) {
 		return redirect(302, '/demo/better-auth');
 	}
-	return {};
+	return { authEnabled, githubEnabled };
 };
+
+const disabled = () => fail(503, { message: 'Auth is not configured on this deployment.' });
 
 export const actions = {
 	signInEmail: async (event) => {
+		if (!authEnabled) return disabled();
 		const formData = await event.request.formData();
 		const email = formData.get('email')?.toString() ?? '';
 		const password = formData.get('password')?.toString() ?? '';
@@ -34,6 +37,7 @@ export const actions = {
 		return redirect(302, '/demo/better-auth');
 	},
 	signUpEmail: async (event) => {
+		if (!authEnabled) return disabled();
 		const formData = await event.request.formData();
 		const email = formData.get('email')?.toString() ?? '';
 		const password = formData.get('password')?.toString() ?? '';
@@ -58,6 +62,7 @@ export const actions = {
 		return redirect(302, '/demo/better-auth');
 	},
 	signInSocial: async (event) => {
+		if (!authEnabled) return disabled();
 		const formData = await event.request.formData();
 		const provider = formData.get('provider')?.toString() ?? 'github';
 		const callbackURL = formData.get('callbackURL')?.toString() ?? '/demo/better-auth';
