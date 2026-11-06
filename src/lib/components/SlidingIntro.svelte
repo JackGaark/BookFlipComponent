@@ -1,10 +1,12 @@
 <svelte:options runes={false} />
 
 <script>
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import { introLayouts } from './intro-layouts';
   import { featuredProjects } from './project-details';
   import ProjectIndex from './ProjectIndex.svelte';
+  import ZoomThumb from './ZoomThumb.svelte';
+  import { detent } from './zoom-thumb.js';
 
   export let zoom = 0;
   export let projects = [];
@@ -47,6 +49,11 @@
   let width = 1440;
   let scroller;
   let draggingZoom = false;
+  let keyboardZoom = false;
+  let snappedZoom = false;
+  let zoomTravel = 1;
+  let settlingThumb = false;
+  onDestroy(releaseZoom);
   $: scale = Math.max(width, 720) / 1440;
   // Build the middle view from the overview order so every card keeps its identity,
   // crop, and place in the reading sequence at every zoom level.
@@ -116,17 +123,61 @@
   $: canvasWidth = Math.max(1440, ...cards.map((c) => c.x + c.w + 84));
   $: canvasHeight = Math.max(880, ...cards.map((c) => c.y + c.h + 77));
 
+  /** @param {number} value */
+  function changeZoom(value) {
+    if (zoom === value) return;
+    zoom = value;
+    dispatch('zoomgesture', 'sliderMove');
+  }
+
+  /** @param {Event & { currentTarget: HTMLInputElement }} event */
   function updateZoom(event) {
-    zoom = Number(event.currentTarget.value);
+    const input = event.currentTarget;
+    const raw = Number(input.value);
+    if (!draggingZoom) {
+      settlingThumb = false;
+      changeZoom(raw);
+      return;
+    }
+    const next = detent(raw, snappedZoom, zoomTravel);
+    snappedZoom = next.snapped;
+    // Svelte cannot re-sync a native input when the bound value stays at 50.
+    input.value = String(next.value);
+    changeZoom(next.value);
+  }
+
+  /** @param {PointerEvent & { currentTarget: HTMLInputElement }} event */
+  function grabZoom(event) {
+    const input = event.currentTarget;
+    zoomTravel = input.clientWidth - parseFloat(getComputedStyle(input).getPropertyValue('--hit'));
+    snappedZoom = false;
+    settlingThumb = false;
+    draggingZoom = true;
+    dispatch('zoomgesture', 'sliderGrab');
+  }
+
+  function releaseZoom() {
+    draggingZoom = false;
+    keyboardZoom = false;
+    snappedZoom = false;
+    settlingThumb = false;
+    dispatch('zoomgesture', 'sliderRelease');
+  }
+
+  /** @param {KeyboardEvent} event */
+  function releaseZoomKey(event) {
+    if (keyboardZoom && event.key.startsWith('Arrow')) releaseZoom();
   }
 
   function finishZoomDrag() {
     if (!draggingZoom) return;
-    draggingZoom = false;
+    releaseZoom();
+    settlingThumb = true;
     if (Math.abs(zoom - 50) <= 6) zoom = 50;
     else if (zoom >= 94) zoom = 100;
   }
 
+  /** @param {KeyboardEvent} event */
   function handleZoomKeydown(event) {
     const direction = ['ArrowRight', 'ArrowUp'].includes(event.key)
       ? 1
@@ -135,7 +186,10 @@
       : 0;
     if (!direction) return;
     event.preventDefault();
-    zoom = Math.max(0, Math.min(100, Math.round(zoom) + direction));
+    settlingThumb = false;
+    keyboardZoom = true;
+    dispatch('zoomgesture', 'sliderGrab');
+    changeZoom(Math.max(0, Math.min(100, Math.round(zoom) + direction)));
   }
 
   function handleGalleryWheel(event) {
@@ -147,7 +201,8 @@
 
 <svelte:window
   on:pointerup={finishZoomDrag}
-  on:pointercancel={() => (draggingZoom = false)}
+  on:pointercancel={releaseZoom}
+  on:blur={releaseZoom}
 />
 
 <section class="intro" aria-label="Selected work" bind:clientWidth={width}>
@@ -192,7 +247,7 @@
     </nav>
   </header>
   {#if view === 'work'}
-    <div class="control">
+    <div class="control" data-snapped={snappedZoom}>
       <input
         type="range"
         min="0"
@@ -201,12 +256,14 @@
         value={zoom}
         on:input={updateZoom}
         on:keydown={handleZoomKeydown}
-        on:pointerdown={() => {
-                draggingZoom = true;
-        }}
+        on:pointerdown={grabZoom}
+        on:keyup={releaseZoomKey}
+        on:blur={releaseZoom}
         aria-label="Image size"
         aria-valuetext={description}
       />
+      <ZoomThumb value={zoom} animate={draggingZoom || settlingThumb} {reducedMotion}
+        onsettled={() => { if (!draggingZoom) settlingThumb = false; }} />
     </div>
     <div
       class="gallery-scroll"
@@ -336,6 +393,7 @@
     color: #000;
   }
   .control {
+    --hit: 35px;
     position: absolute;
     top: max(46px, 3.1vw);
     left: 5.15%;
@@ -366,19 +424,19 @@
   input::-webkit-slider-thumb {
     appearance: none;
     -webkit-appearance: none;
-    width: 35px;
-    height: 35px;
-    margin-top: -17px;
+    width: var(--hit);
+    height: var(--hit);
+    margin-top: calc((1px - var(--hit)) / 2);
     border: 0;
     border-radius: 50%;
-    background: #bd62ff;
+    background: transparent;
   }
   input::-moz-range-thumb {
-    width: 35px;
-    height: 35px;
+    width: var(--hit);
+    height: var(--hit);
     border: 0;
     border-radius: 50%;
-    background: #bd62ff;
+    background: transparent;
   }
   input:focus-visible {
     outline: 2px solid #bd62ff;
@@ -469,16 +527,8 @@
   @media (max-width: 720px) {
     .caption { font-size: max(6px, var(--caption-size)); }
     .control {
+      --hit: 25px;
       top: 46px;
-    }
-    input::-webkit-slider-thumb {
-      width: 25px;
-      height: 25px;
-      margin-top: -12px;
-    }
-    input::-moz-range-thumb {
-      width: 25px;
-      height: 25px;
     }
   }
 </style>

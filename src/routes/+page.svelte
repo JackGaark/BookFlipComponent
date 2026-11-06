@@ -17,6 +17,8 @@
   let entranceOpen = true;
   let introOpen = true;
   let introZoom = 50;
+  /** @type {{ zoomGesture: (phase: 'sliderGrab' | 'sliderMove' | 'sliderRelease') => void } | undefined} */
+  let book;
   let introView = 'work';
   let selectedProjectId = 0;
   async function openIntroProject(event) {
@@ -1147,7 +1149,7 @@
   </div>
 {:else}
 {#if introOpen}
-  <SlidingIntro bind:zoom={introZoom} initialView={introView} projects={projectsArray.slice(0, MAX_DISPLAY_PROJECT)} studioOpen={modalOpen} on:select={openIntroProject} on:studio={showModal} on:closestudio={hideModal} />
+  <SlidingIntro on:zoomgesture={(event) => book?.zoomGesture(event.detail)} bind:zoom={introZoom} initialView={introView} projects={projectsArray.slice(0, MAX_DISPLAY_PROJECT)} studioOpen={modalOpen} on:select={openIntroProject} on:studio={showModal} on:closestudio={hideModal} />
 {:else}
 <header class="project-header">
   <button class="project-logo" aria-label="Super Bonjour home" on:click={() => { introView = 'work'; introOpen = true; window.scrollTo(0, 0); }}>
@@ -1195,7 +1197,7 @@
 {/if}
 {/if}
 {#if !entranceOpen && !modalOpen}
-  <div class="page-book"><BookComponentFlip zoom={introZoom} /></div>
+  <div class="page-book"><BookComponentFlip bind:this={book} /></div>
 {/if}
 <PopUp bind:modalOpen isMobile={isMobile && isLandscapeView} />
 

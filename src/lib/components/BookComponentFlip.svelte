@@ -1,84 +1,131 @@
 <script>
-  let { zoom = 50 } = $props();
-  const turn = $derived((zoom - 50) * 7.2);
+	import { onMount } from 'svelte';
+	import { bookFlip, initialBookFlip, flipAttribute } from './book-flip.js';
 
-  /** @param {MouseEvent | PointerEvent} event */
-  function flip(event) {
-    const book = event.currentTarget;
-    if (!(book instanceof HTMLButtonElement) || book.hasAttribute('data-flipping')) return;
-    const requested = event.type === 'click';
-    if (!requested && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (!requested && !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+	/** @type {HTMLButtonElement} */
+	let book;
+	let state = initialBookFlip;
 
-    book.setAttribute('data-flipping', requested ? 'requested' : '');
-    const turns = [...book.querySelectorAll('.book__page')].flatMap((page) => page.getAnimations());
-    Promise.allSettled(turns.map((turn) => turn.finished)).then(() => {
-      book.removeAttribute('data-flipping');
-    });
-  }
+	/** @param {import('./book-flip.js').FlipAction} action */
+	function send(action) {
+		const previous = state;
+		state = bookFlip(state, action);
+		if (state === previous || !book) return;
+		if (state.status === 'flipping' && state.run !== previous.run) play(state.run);
+		else if (state.status !== 'flipping') book.removeAttribute('data-flipping');
+	}
+
+	/** @param {number} run */
+	function play(run) {
+		book.removeAttribute('data-flipping');
+		// Resolve the resting style before starting the next CSS sequence.
+		book.getAnimations({ subtree: true });
+		book.setAttribute('data-flipping', flipAttribute(state) ?? '');
+		const turns = [...book.querySelectorAll('.book__page')].flatMap((page) => page.getAnimations());
+		Promise.allSettled(turns.map((turn) => turn.finished)).then((results) => {
+			const completed =
+				turns.length > 0 && results.every((result) => result.status === 'fulfilled');
+			send({ type: completed ? 'finished' : 'cancelled', run });
+		});
+	}
+
+	/** @param {'sliderGrab' | 'sliderMove' | 'sliderRelease'} phase */
+	export function zoomGesture(phase) {
+		send({ type: phase });
+	}
+
+	onMount(() => {
+		const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+		const pointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+		const update = () =>
+			send({ type: 'environment', reducedMotion: motion.matches, finePointer: pointer.matches });
+		update();
+		motion.addEventListener('change', update);
+		pointer.addEventListener('change', update);
+		return () => {
+			send({ type: 'unmount' });
+			motion.removeEventListener('change', update);
+			pointer.removeEventListener('change', update);
+		};
+	});
 </script>
 
-<button class="book" type="button" aria-label="Turn book pages" onpointerenter={flip} onclick={flip}>
-  <svg viewBox="0 0 23 23" fill="none" aria-hidden="true">
-    {#each [0, 75, 150, 225, 300] as delay, index}
-      <path
-        class="book__page"
-        style={`--delay: ${delay}ms; --zoom-turn: ${turn - index * 12 * Math.sin(turn * Math.PI / 180)}deg`}
-        d="M11.5 11V1"
-      />
-    {/each}
-  </svg>
+<button
+	bind:this={book}
+	class="book"
+	type="button"
+	aria-label="Turn book pages"
+	onpointerenter={() => send({ type: 'hover' })}
+	onclick={() => send({ type: 'click' })}
+>
+	<svg viewBox="0 0 23 23" fill="none" aria-hidden="true">
+		{#each [0, 75, 150, 225, 300] as delay (delay)}
+			<path class="book__page" style={`--delay: ${delay}ms`} d="M11.5 11V1" />
+		{/each}
+	</svg>
 </button>
 
 <style>
-  .book {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #000;
-    cursor: pointer;
-  }
+	.book {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 44px;
+		height: 44px;
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: #000;
+		cursor: pointer;
+	}
 
-  .book:focus-visible {
-    outline: 2px solid #bd62ff;
-    outline-offset: 4px;
-  }
+	.book:focus-visible {
+		outline: 2px solid #bd62ff;
+		outline-offset: 4px;
+	}
 
-  svg {
-    width: 32px;
-    height: 32px;
-    stroke: currentColor;
-    stroke-width: 1.2;
-    stroke-linecap: round;
-  }
+	svg {
+		width: 32px;
+		height: 32px;
+		stroke: currentColor;
+		stroke-width: 1.2;
+		stroke-linecap: round;
+	}
 
-  .book__page {
-    transform-box: view-box;
-    transform-origin: 11.5px 11px;
-    transform: rotate(var(--zoom-turn));
-  }
+	.book__page {
+		transform-box: view-box;
+		transform-origin: 11.5px 11px;
+		transform: rotate(0deg);
+	}
 
-  .book:global([data-flipping]) .book__page {
-    animation: book-flip 360ms ease-in-out, book-flip-back 360ms ease-in-out;
-    animation-delay: var(--delay), calc(660ms + var(--delay));
-  }
+	.book:global([data-flipping]) .book__page {
+		animation:
+			book-flip 360ms ease-in-out,
+			book-flip-back 360ms ease-in-out;
+		animation-delay: var(--delay), calc(660ms + var(--delay));
+	}
 
-  @keyframes book-flip {
-    from { transform: rotate(var(--zoom-turn)); }
-    to { transform: rotate(calc(var(--zoom-turn) + 360deg)); }
-  }
+	@keyframes book-flip {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
 
-  @keyframes book-flip-back {
-    from { transform: rotate(var(--zoom-turn)); }
-    to { transform: rotate(calc(var(--zoom-turn) - 360deg)); }
-  }
+	@keyframes book-flip-back {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(-360deg);
+		}
+	}
 
-  @media (prefers-reduced-motion: reduce) {
-    .book:global([data-flipping]:not([data-flipping='requested'])) .book__page { animation: none; }
-  }
+	@media (prefers-reduced-motion: reduce) {
+		.book:global([data-flipping]:not([data-flipping='requested'])) .book__page {
+			animation: none;
+		}
+	}
 </style>
