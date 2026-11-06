@@ -3,9 +3,11 @@ import { createClient } from '@libsql/client';
 import * as schema from './schema';
 import { DATABASE_URL, DATABASE_AUTH_TOKEN } from '$app/env/private';
 
-if (!DATABASE_URL) throw new Error('DATABASE_URL is not set');
-if (!DATABASE_AUTH_TOKEN) throw new Error('DATABASE_AUTH_TOKEN is not set');
+/** Whether a real database is configured. Without one, auth is disabled (see `authEnabled`). */
+export const dbConfigured = Boolean(DATABASE_URL);
 
-const client = createClient({ url: DATABASE_URL, authToken: DATABASE_AUTH_TOKEN });
+// PLACEHOLDER: with no DATABASE_URL, fall back to an empty in-memory database so the app can
+// build and serve the non-auth pages. Set DATABASE_URL (and DATABASE_AUTH_TOKEN for Turso) to use a real one.
+const client = createClient({ url: DATABASE_URL ?? ':memory:', authToken: DATABASE_AUTH_TOKEN });
 
 export const db = drizzle(client, { schema });

@@ -1,10 +1,16 @@
 <script>
 	import { enhance } from '$app/forms';
 
-	let { form } = $props();
+	let { data, form } = $props();
 </script>
 
 <h1>Login</h1>
+{#if !data.authEnabled}
+	<p role="alert">
+		Auth is not configured on this deployment yet: set <code>DATABASE_URL</code> and
+		<code>BETTER_AUTH_SECRET</code> to enable sign-in.
+	</p>
+{/if}
 <form method="post" action="?/signInEmail" use:enhance>
 	<label>
 		Email
@@ -23,10 +29,12 @@
 </form>
 <p style="color: red">{form?.message ?? ''}</p>
 
-<hr />
+{#if data.githubEnabled}
+	<hr />
 
-<form method="post" action="?/signInSocial" use:enhance>
-	<input type="hidden" name="provider" value="github" />
-	<input type="hidden" name="callbackURL" value="/demo/better-auth" />
-	<button>Sign in with GitHub</button>
-</form>
+	<form method="post" action="?/signInSocial" use:enhance>
+		<input type="hidden" name="provider" value="github" />
+		<input type="hidden" name="callbackURL" value="/demo/better-auth" />
+		<button>Sign in with GitHub</button>
+	</form>
+{/if}

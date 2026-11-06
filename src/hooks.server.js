@@ -1,6 +1,6 @@
 import { sequence } from '@sveltejs/kit/hooks';
 import { building } from '$app/env';
-import { auth } from '#lib/server/auth.js';
+import { auth, authEnabled } from '#lib/server/auth.js';
 import { svelteKitHandler } from 'better-auth/svelte-kit';
 import { getTextDirection } from '#lib/paraglide/runtime.js';
 import { paraglideMiddleware } from '#lib/paraglide/server.js';
@@ -22,6 +22,9 @@ import { paraglideMiddleware } from '#lib/paraglide/server.js';
 	event,
 	resolve
 }) => {
+	// Auth is disabled until DATABASE_URL and BETTER_AUTH_SECRET are set.
+	if (!authEnabled) return resolve(event);
+
 	const session = await auth.api.getSession({ headers: event.request.headers });
 
 	if (session) {
