@@ -52,7 +52,12 @@
   let keyboardZoom = false;
   let snappedZoom = false;
   let zoomTravel = 1;
+  let zoomPointerReleased = false;
   let settlingThumb = false;
+  /** @type {HTMLInputElement | undefined} */
+  let zoomInput;
+  /** @type {ReturnType<typeof setTimeout> | undefined} */
+  let zoomReleaseTimer;
   onDestroy(releaseZoom);
   $: scale = Math.max(width, 720) / 1440;
   // Build the middle view from the overview order so every card keeps its identity,
@@ -152,11 +157,15 @@
     zoomTravel = input.clientWidth - parseFloat(getComputedStyle(input).getPropertyValue('--hit'));
     snappedZoom = false;
     settlingThumb = false;
+    zoomPointerReleased = false;
     draggingZoom = true;
     dispatch('zoomgesture', 'sliderGrab');
   }
 
   function releaseZoom() {
+    clearTimeout(zoomReleaseTimer);
+    zoomReleaseTimer = undefined;
+    zoomPointerReleased = false;
     draggingZoom = false;
     keyboardZoom = false;
     snappedZoom = false;
@@ -164,17 +173,36 @@
     dispatch('zoomgesture', 'sliderRelease');
   }
 
+  function blurZoomInput() {
+    // WebKit can blur a keyboard-focused range as a pointer drag begins.
+    if (!draggingZoom) releaseZoom();
+  }
+
   /** @param {KeyboardEvent} event */
   function releaseZoomKey(event) {
     if (keyboardZoom && event.key.startsWith('Arrow')) releaseZoom();
   }
 
-  function finishZoomDrag() {
+  function commitZoomDrag() {
     if (!draggingZoom) return;
     releaseZoom();
     settlingThumb = true;
     if (Math.abs(zoom - 50) <= 6) zoom = 50;
     else if (zoom >= 94) zoom = 100;
+    if (zoomInput) zoomInput.value = String(zoom);
+  }
+
+  function finishZoomChange() {
+    if (zoomPointerReleased) commitZoomDrag();
+  }
+
+  function finishZoomDrag() {
+    if (!draggingZoom) return;
+    zoomPointerReleased = true;
+    // Firefox emits its final native input/change after pointerup.
+    // change commits first; the timer also covers a grab with no value change.
+    clearTimeout(zoomReleaseTimer);
+    zoomReleaseTimer = setTimeout(commitZoomDrag, 0);
   }
 
   /** @param {KeyboardEvent} event */
@@ -249,16 +277,18 @@
   {#if view === 'work'}
     <div class="control" data-snapped={snappedZoom}>
       <input
+        bind:this={zoomInput}
         type="range"
         min="0"
         max="100"
         step="0.1"
         value={zoom}
         on:input={updateZoom}
+        on:change={finishZoomChange}
         on:keydown={handleZoomKeydown}
         on:pointerdown={grabZoom}
         on:keyup={releaseZoomKey}
-        on:blur={releaseZoom}
+        on:blur={blurZoomInput}
         aria-label="Image size"
         aria-valuetext={description}
       />

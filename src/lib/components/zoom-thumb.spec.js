@@ -3,6 +3,7 @@ import { detent, thumbShape, thumbAppearance } from './zoom-thumb.js';
 
 describe('zoom thumb detent', () => {
 	it.each([300, 1200])('keeps enter and escape distances stable on a %ipx track', (travel) => {
+		/** @param {number} px */
 		const units = (px) => (px * 100) / travel;
 		expect(detent(50 - units(11), false, travel)).toEqual({ value: 50, snapped: true });
 		expect(detent(50 + units(20), true, travel)).toEqual({ value: 50, snapped: true });

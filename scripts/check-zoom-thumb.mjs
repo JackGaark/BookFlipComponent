@@ -24,7 +24,7 @@ for (const [name, engine] of Object.entries({ chrome: chromium, firefox, webkit 
 			await page.getByRole('button', { name: 'Work', exact: true }).click();
 			const slider = page.getByRole('slider', { name: 'Image size' });
 			const thumb = page.locator('.zoom-thumb');
-			await thumb.waitFor();
+			await thumb.waitFor({ state: 'attached' });
 			const setZoom = (value) =>
 				slider.evaluate((input, value) => {
 					input.value = String(value);
@@ -124,7 +124,9 @@ for (const [name, engine] of Object.entries({ chrome: chromium, firefox, webkit 
 			await page.mouse.move(g.x(30), g.y);
 			await page.mouse.down();
 			await page.mouse.move(g.x(45), g.y);
-			await settled(45);
+			const releasedFrom = Number(await slider.inputValue());
+			assert.ok(Math.abs(releasedFrom - 45) < 0.5);
+			await settled(releasedFrom);
 			await page.mouse.up();
 			const samples = await page.evaluate(async () => {
 				const positions = [];
@@ -135,7 +137,7 @@ for (const [name, engine] of Object.entries({ chrome: chromium, firefox, webkit 
 				return positions;
 			});
 			assert.ok(
-				samples.some((value) => value > 45.01 && value < 49.99),
+				samples.some((value) => value > releasedFrom + 0.01 && value < 49.99),
 				'Release snap has intermediate positions'
 			);
 			await settled(50);
