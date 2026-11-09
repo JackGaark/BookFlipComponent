@@ -15,24 +15,34 @@
 	$effect(() => {
 		const target = value;
 		const instant = reducedMotion || !animate;
-		const instantShape = reducedMotion;
 		const settled = onsettled;
 		let active = true;
-		untrack(() => {
-			void movement.set(!instant && Math.abs(target - thumb.current) > 0.001 ? 1 : 0, { instant: instantShape });
-			return thumb.set(target, { instant });
-		}).then(
+		untrack(() => thumb.set(target, { instant })).then(
 			() => {
-				if (active) {
-					void movement.set(0, { instant: instantShape });
-					settled();
-				}
+				if (active) settled();
 			},
 			() => {}
 		);
 		return () => {
 			active = false;
 		};
+	});
+
+	let previousValue = untrack(() => value);
+	$effect(() => {
+		const nextValue = value;
+		if (nextValue === previousValue) return;
+		previousValue = nextValue;
+		// Direct manipulation drives the shape independently of positional easing.
+		movement.stiffness = THUMB_SPRING.stiffness;
+		movement.damping = THUMB_SPRING.damping;
+		void movement.set(1);
+		const idle = setTimeout(() => {
+			movement.stiffness = 0.1;
+			movement.damping = 0.85;
+			void movement.set(0);
+		}, 120);
+		return () => clearTimeout(idle);
 	});
 
 	onDestroy(() => {
