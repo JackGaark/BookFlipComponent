@@ -29,10 +29,10 @@ export function thumbShape(value) {
 	return t * t * (3 - 2 * t);
 }
 
-/** @param {number} value */
-export function thumbAppearance(value) {
+/** @param {number} value @param {number} movement */
+export function thumbAppearance(value, movement = 1) {
 	const position = clampZoom(value);
-	const stretch = thumbShape(position);
+	const stretch = thumbShape(position) * Math.max(0, Math.min(1, movement));
 	return {
 		position,
 		stretch,

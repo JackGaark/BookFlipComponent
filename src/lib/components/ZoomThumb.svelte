@@ -9,16 +9,24 @@
 		untrack(() => value),
 		THUMB_SPRING
 	);
-	const appearance = $derived(thumbAppearance(thumb.current));
+	const movement = new Spring(0, THUMB_SPRING);
+	const appearance = $derived(thumbAppearance(thumb.current, movement.current));
 
 	$effect(() => {
 		const target = value;
 		const instant = reducedMotion || !animate;
+		const instantShape = reducedMotion;
 		const settled = onsettled;
 		let active = true;
-		untrack(() => thumb.set(target, { instant })).then(
+		untrack(() => {
+			void movement.set(!instant && Math.abs(target - thumb.current) > 0.001 ? 1 : 0, { instant: instantShape });
+			return thumb.set(target, { instant });
+		}).then(
 			() => {
-				if (active) settled();
+				if (active) {
+					void movement.set(0, { instant: instantShape });
+					settled();
+				}
 			},
 			() => {}
 		);
@@ -29,6 +37,7 @@
 
 	onDestroy(() => {
 		void thumb.set(thumb.target, { instant: true });
+		void movement.set(0, { instant: true });
 	});
 </script>
 

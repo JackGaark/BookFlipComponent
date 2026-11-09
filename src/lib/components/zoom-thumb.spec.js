@@ -27,6 +27,13 @@ describe('zoom thumb detent', () => {
 });
 
 describe('zoom thumb shape', () => {
+	it('returns to a circle at any resting position without shifting the zoom', () => {
+		for (const position of [0, 13, 25, 41, 50, 67, 75, 89, 100]) {
+			expect(thumbAppearance(position, 0)).toMatchObject({
+				position, stretch: 0, circleScale: 1, circleOpacity: 1
+			});
+		}
+	});
 	it('uses an undistorted circle at every stop and full capsule between stops', () => {
 		for (const stop of [0, 50, 100]) {
 			expect(thumbAppearance(stop)).toMatchObject({ stretch: 0, circleScale: 1, circleOpacity: 1 });
