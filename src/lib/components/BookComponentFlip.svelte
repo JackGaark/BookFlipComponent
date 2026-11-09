@@ -1,3 +1,5 @@
+<svelte:options runes={false} />
+
 <script>
 	import { onMount } from 'svelte';
 	import { bookFlip, initialBookFlip, flipAttribute } from './book-flip.js';
@@ -5,9 +7,28 @@
 	/** @type {HTMLButtonElement} */
 	let book;
 	let state = initialBookFlip;
+	export let dial = false;
+	let landingDial = dial;
+	let dialAngle = 0;
+
+	/** Advance the dial from the landing page's shared frame clock and signed tempo. */
+	export function setLandingTempo(rate, playing, elapsed) {
+		if (!book || !playing) return;
+		if (!landingDial) {
+			book.removeAttribute('data-flipping');
+			landingDial = true;
+		}
+		dialAngle = (dialAngle + elapsed * rate * 360 / 1320) % 360;
+		book.querySelectorAll('.book__page').forEach((page, index) => {
+			const phase = ((dialAngle / 360 - index * 75 / 1320) % 1 + 1) % 1;
+			const angle = (phase < 0.5 ? 2 * phase * phase : 1 - 2 * (1 - phase) ** 2) * 360;
+			page.style.transform = `rotate(${angle}deg)`;
+		});
+	}
 
 	/** @param {import('./book-flip.js').FlipAction} action */
 	function send(action) {
+		if (landingDial && (action.type === 'hover' || action.type === 'click')) return;
 		const previous = state;
 		state = bookFlip(state, action);
 		if (state === previous || !book) return;
@@ -60,7 +81,7 @@
 >
 	<svg viewBox="0 0 23 23" fill="none" aria-hidden="true">
 		{#each [0, 75, 150, 225, 300] as delay (delay)}
-			<path class="book__page" style={`--delay: ${delay}ms`} d="M11.5 11V1" />
+			<path class="book__page" style={`--delay: ${delay}ms`} d="M11.5 11V1" vector-effect="non-scaling-stroke" />
 		{/each}
 	</svg>
 </button>
@@ -88,7 +109,7 @@
 		width: 32px;
 		height: 32px;
 		stroke: currentColor;
-		stroke-width: 1.2;
+		stroke-width: 1.5;
 		stroke-linecap: round;
 	}
 

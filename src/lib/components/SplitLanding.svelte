@@ -2,6 +2,7 @@
 
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
+  import BookComponentFlip from './BookComponentFlip.svelte';
 
   export let studioOpen = false;
   const dispatch = createEventDispatcher();
@@ -35,6 +36,12 @@
   const EDGE_CUT_INTERVAL_MS = 2000;
   let leftInterval = DEFAULT_CUT_INTERVAL_MS;
   let rightInterval = DEFAULT_CUT_INTERVAL_MS * 3;
+  let bookInterval = DEFAULT_CUT_INTERVAL_MS;
+  let bookDirection = 1;
+  let cursorActive = false;
+  let cursorX = 0;
+  let cursorY = 0;
+  let book;
   let leftCurrent = 0;
   let rightCurrent = 0;
   let paused = false;
@@ -74,12 +81,17 @@
   }
 
   function updateCutInterval(event) {
-    if (event.pointerType === 'touch') return;
+    if (event.pointerType !== 'mouse' || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    cursorX = event.clientX;
+    cursorY = event.clientY;
     const { left, width } = event.currentTarget.getBoundingClientRect();
     const position = (event.clientX - left) / width;
     const edgeProgress = Math.min(1, Math.abs(position - 0.5) * 2);
     const slowdown = edgeProgress ** 2 * (3 - 2 * edgeProgress);
     const interval = CENTER_CUT_INTERVAL_MS + slowdown * (EDGE_CUT_INTERVAL_MS - CENTER_CUT_INTERVAL_MS);
+    bookInterval = interval;
+    bookDirection = position < 0.5 ? -1 : 1;
+    cursorActive = true;
     if (position < 0.5) {
       leftInterval = interval;
       rightInterval = DEFAULT_CUT_INTERVAL_MS * 3;
@@ -105,6 +117,7 @@
     let lastFrame;
     let leftRate = 1 / leftInterval;
     let rightRate = 1 / rightInterval;
+    let bookRate = 1 / bookInterval;
     let leftBeat = 0;
     let rightBeat = 0;
     let frame = requestAnimationFrame(tick);
@@ -117,6 +130,7 @@
         const blend = 1 - Math.exp(-elapsed / TEMPO_RESPONSE_MS);
         leftRate += (1 / leftInterval - leftRate) * blend;
         rightRate += (1 / rightInterval - rightRate) * blend;
+        bookRate += (1 / bookInterval - bookRate) * blend;
         leftBeat += elapsed * leftRate;
         rightBeat += elapsed * rightRate;
 
@@ -129,6 +143,7 @@
           rightBeat -= 1;
         }
       }
+      book?.setLandingTempo(bookDirection * DEFAULT_CUT_INTERVAL_MS * bookRate, playing && cursorActive, elapsed);
       frame = requestAnimationFrame(tick);
     }
 
@@ -153,7 +168,8 @@
   if (event.key === 'ArrowLeft') advance(-1);
 }} />
 
-<div class="landing"
+<div class="landing" class:book-cursor={cursorActive && !studioOpen}
+  on:pointerleave={() => { cursorActive = false; }}
   on:pointermove|passive={updateCutInterval}
   on:wheel|passive={(event) => { if (event.deltaY > 45) enter(); }}
   on:touchstart|passive={(event) => { touchStart = event.touches[0].clientY; }}
@@ -178,6 +194,10 @@
     {/each}
   </main>
 
+  {#if !studioOpen}
+    <div class="landing-book" class:following={cursorActive} style:--cursor-x={`${cursorX}px`} style:--cursor-y={`${cursorY}px`} inert={cursorActive}><BookComponentFlip dial bind:this={book} /></div>
+  {/if}
+
   <button class="wordmark" aria-label="Super Bonjour home" on:click={enter}>
     <img src="/images/landing-wordmark.png" alt="Super Bonjour" width="64" height="27" />
   </button>
@@ -192,6 +212,21 @@
 
 <style>
   .landing { position: relative; height: 100svh; min-height: 320px; background: #fff; }
+  .landing-book { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; z-index: 1; }
+  @media (hover: hover) and (pointer: fine) {
+    .book-cursor, .book-cursor :global(*) { cursor: none !important; }
+    .landing-book { visibility: hidden; pointer-events: none; }
+    .landing-book.following {
+      visibility: visible;
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translate3d(var(--cursor-x), var(--cursor-y), 0) translate(-50%, -50%);
+      z-index: 30;
+      mix-blend-mode: difference;
+    }
+    .landing-book.following :global(.book) { color: white; }
+  }
   .stage { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .panel { position: relative; overflow: hidden; }
   .media { position: absolute; inset: 0; visibility: hidden; }

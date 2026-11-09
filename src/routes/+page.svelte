@@ -4,7 +4,6 @@
   import ProjectView from '#lib/components/ProjectView.svelte';
   import SlidingIntro from '#lib/components/SlidingIntro.svelte';
   import SplitLanding from '#lib/components/SplitLanding.svelte';
-  import BookComponentFlip from '#lib/components/BookComponentFlip.svelte';
   import { fade } from 'svelte/transition';
   import PopUp from '#lib/components/PopUp.svelte';
   import { initI18n } from '#lib/components/i18n/i18n.js';
@@ -17,8 +16,6 @@
   let entranceOpen = true;
   let introOpen = true;
   let introZoom = 50;
-  /** @type {{ zoomGesture: (phase: 'sliderGrab' | 'sliderMove' | 'sliderRelease') => void } | undefined} */
-  let book;
   let introView = 'work';
   let selectedProjectId = 0;
   async function openIntroProject(event) {
@@ -1149,7 +1146,7 @@
   </div>
 {:else}
 {#if introOpen}
-  <SlidingIntro on:zoomgesture={(event) => book?.zoomGesture(event.detail)} bind:zoom={introZoom} initialView={introView} projects={projectsArray.slice(0, MAX_DISPLAY_PROJECT)} studioOpen={modalOpen} on:select={openIntroProject} on:studio={showModal} on:closestudio={hideModal} />
+  <SlidingIntro bind:zoom={introZoom} initialView={introView} projects={projectsArray.slice(0, MAX_DISPLAY_PROJECT)} studioOpen={modalOpen} on:select={openIntroProject} on:studio={showModal} on:closestudio={hideModal} />
 {:else}
 <header class="project-header">
   <button class="project-logo" aria-label="Super Bonjour home" on:click={() => { introView = 'work'; introOpen = true; window.scrollTo(0, 0); }}>
@@ -1196,18 +1193,9 @@
 </main>
 {/if}
 {/if}
-{#if !entranceOpen && !modalOpen}
-  <div class="page-book"><BookComponentFlip bind:this={book} /></div>
-{/if}
 <PopUp bind:modalOpen isMobile={isMobile && isLandscapeView} />
 
 <style>
-  .page-book {
-    position: fixed;
-    top: 72px;
-    left: max(20px, calc((100vw - 1440px) / 2 + 40px));
-    z-index: 11;
-  }
   .entrance { position: fixed; inset: 0; z-index: 20; overflow: auto; }
   :global(body) {
     padding: 0;
