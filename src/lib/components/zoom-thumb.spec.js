@@ -2,27 +2,33 @@ import { describe, it, expect } from 'vitest';
 import { detent, thumbShape, thumbAppearance } from './zoom-thumb.js';
 
 describe('zoom thumb detent', () => {
-	it.each([300, 1200])('keeps enter and escape distances stable on a %ipx track', (travel) => {
-		/** @param {number} px */
-		const units = (px) => (px * 100) / travel;
-		expect(detent(50 - units(11), false, travel)).toEqual({ value: 50, snapped: true });
-		expect(detent(50 + units(20), true, travel)).toEqual({ value: 50, snapped: true });
-		expect(detent(50 - units(20), true, travel)).toEqual({ value: 50, snapped: true });
-		expect(detent(50 + units(29), true, travel).snapped).toBe(false);
-		expect(detent(50 - units(29), true, travel).snapped).toBe(false);
-		expect(detent(50 + units(11), false, travel).value).toBe(50);
+	it.each([300, 1200])('captures and holds all three stops on a %ipx track', (travel) => {
+		const units = (px) => px * 100 / travel;
+		for (const stop of [0, 50, 100]) {
+			for (const direction of stop === 0 ? [1] : stop === 100 ? [-1] : [-1, 1]) {
+				expect(detent(stop + direction * units(19), null, travel)).toEqual({ value: stop, snapped: stop });
+				expect(detent(stop + direction * units(47), stop, travel)).toEqual({ value: stop, snapped: stop });
+				const free = stop + direction * units(49);
+				expect(detent(free, stop, travel)).toEqual({ value: free, snapped: null });
+			}
+		}
 	});
-	it('does not pull a jump across the centre back to the centre', () => {
-		expect(detent(40, false, 1000)).toEqual({ value: 40, snapped: false });
-		expect(detent(60, false, 1000)).toEqual({ value: 60, snapped: false });
+	it('tracks the pointer exactly between the three magnetic zones', () => {
+		for (const value of [10, 25, 40, 60, 75, 90]) {
+			expect(detent(value, null, 1000)).toEqual({ value, snapped: null });
+		}
 	});
-	it('resetting capture makes the exit band free again', () => {
-		expect(detent(52, true, 1000).value).toBe(50);
-		expect(detent(52, false, 1000).value).toBe(52);
+	it('releases a captured point without pulling a large jump back', () => {
+		expect(detent(75, 50, 1000)).toEqual({ value: 75, snapped: null });
+		expect(detent(99, 50, 1000)).toEqual({ value: 100, snapped: 100 });
 	});
-	it('clamps out-of-range values', () => {
-		expect(detent(-10, false, 1000).value).toBe(0);
-		expect(detent(110, false, 1000).value).toBe(100);
+	it('keeps free space between stops on short tracks', () => {
+		expect(detent(25, 0, 100)).toEqual({ value: 25, snapped: null });
+		expect(detent(75, 50, 100)).toEqual({ value: 75, snapped: null });
+	});
+	it('clamps out-of-range values to the end stops', () => {
+		expect(detent(-10, null, 1000)).toEqual({ value: 0, snapped: 0 });
+		expect(detent(110, null, 1000)).toEqual({ value: 100, snapped: 100 });
 	});
 });
 

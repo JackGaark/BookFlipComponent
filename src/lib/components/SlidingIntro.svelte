@@ -50,7 +50,8 @@
   let scroller;
   let draggingZoom = false;
   let keyboardZoom = false;
-  let snappedZoom = false;
+  /** @type {number | null} */
+  let snappedZoom = null;
   let zoomTravel = 1;
   let zoomPointerReleased = false;
   let settlingThumb = false;
@@ -146,7 +147,7 @@
     }
     const next = detent(raw, snappedZoom, zoomTravel);
     snappedZoom = next.snapped;
-    // Svelte cannot re-sync a native input when the bound value stays at 50.
+    // Keep the native thumb at the captured stop while the pointer moves.
     input.value = String(next.value);
     changeZoom(next.value);
   }
@@ -155,7 +156,7 @@
   function grabZoom(event) {
     const input = event.currentTarget;
     zoomTravel = input.clientWidth - parseFloat(getComputedStyle(input).getPropertyValue('--hit'));
-    snappedZoom = false;
+    snappedZoom = [0, 50, 100].includes(zoom) ? zoom : null;
     settlingThumb = false;
     zoomPointerReleased = false;
     draggingZoom = true;
@@ -168,7 +169,7 @@
     zoomPointerReleased = false;
     draggingZoom = false;
     keyboardZoom = false;
-    snappedZoom = false;
+    snappedZoom = null;
     settlingThumb = false;
     dispatch('zoomgesture', 'sliderRelease');
   }
@@ -187,8 +188,6 @@
     if (!draggingZoom) return;
     releaseZoom();
     settlingThumb = true;
-    if (Math.abs(zoom - 50) <= 6) zoom = 50;
-    else if (zoom >= 94) zoom = 100;
     if (zoomInput) zoomInput.value = String(zoom);
   }
 
@@ -275,7 +274,7 @@
     </nav>
   </header>
   {#if view === 'work'}
-    <div class="control" data-snapped={snappedZoom}>
+    <div class="control" data-snapped={snappedZoom !== null}>
       <input
         bind:this={zoomInput}
         type="range"

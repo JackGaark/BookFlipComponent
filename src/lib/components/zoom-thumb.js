@@ -1,24 +1,30 @@
 export const CIRCLE = 15;
 export const CAPSULE = 29;
-export const SNAP_ENTER_PX = 12;
-export const SNAP_EXIT_PX = 28;
+export const SNAP_ENTER_PX = 20;
+export const SNAP_EXIT_PX = 48;
 export const THUMB_SPRING = { stiffness: 0.25, damping: 0.9, precision: 0.001 };
 
 /** @param {number} value */
 export const clampZoom = (value) => Math.max(0, Math.min(100, value));
 
 /**
- * Pointer-only centre capture. The wider exit band prevents jitter at the edge.
+ * Hold the three stops until the pointer deliberately leaves their capture band.
  * @param {number} raw
- * @param {boolean} snapped
+ * @param {number | null} snapped
  * @param {number} travelWidth
- * @returns {{ value: number, snapped: boolean }}
+ * @returns {{ value: number, snapped: number | null }}
  */
 export function detent(raw, snapped, travelWidth) {
 	const value = clampZoom(raw);
-	const distance = (Math.abs(value - 50) * Math.max(1, travelWidth)) / 100;
-	const captured = distance <= (snapped ? SNAP_EXIT_PX : SNAP_ENTER_PX);
-	return { value: captured ? 50 : value, snapped: captured };
+	const width = Math.max(1, travelWidth);
+	const distance = (stop) => Math.abs(value - stop) * width / 100;
+	const enter = Math.min(SNAP_ENTER_PX, width * 0.08);
+	const exit = Math.min(SNAP_EXIT_PX, width * 0.18);
+	if (snapped !== null && distance(snapped) <= exit) {
+		return { value: snapped, snapped };
+	}
+	const stop = [0, 50, 100].find((stop) => distance(stop) <= enter);
+	return stop === undefined ? { value, snapped: null } : { value: stop, snapped: stop };
 }
 
 /** @param {number} value */

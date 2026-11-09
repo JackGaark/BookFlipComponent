@@ -2,7 +2,7 @@
 
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
-  import BookComponentFlip from './BookComponentFlip.svelte';
+  import WordmarkCursor from './WordmarkCursor.svelte';
 
   export let studioOpen = false;
   const dispatch = createEventDispatcher();
@@ -195,7 +195,7 @@
   </main>
 
   {#if !studioOpen}
-    <div class="landing-book" class:following={cursorActive} style:--cursor-x={`${cursorX}px`} style:--cursor-y={`${cursorY}px`} inert={cursorActive}><BookComponentFlip dial bind:this={book} /></div>
+    <div class="landing-book" class:following={cursorActive} style:--cursor-x={`${cursorX}px`} style:--cursor-y={`${cursorY}px`} inert={cursorActive}><WordmarkCursor bind:this={book} /></div>
   {/if}
 
   <button class="wordmark" aria-label="Super Bonjour home" on:click={enter}>
@@ -225,7 +225,7 @@
       z-index: 30;
       mix-blend-mode: difference;
     }
-    .landing-book.following :global(.book) { color: white; }
+    .landing-book.following :global(.wordmark-cursor img) { filter: invert(1); }
   }
   .stage { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .panel { position: relative; overflow: hidden; }
