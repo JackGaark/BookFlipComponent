@@ -36,7 +36,6 @@
   const EDGE_CUT_INTERVAL_MS = 2000;
   let leftInterval = DEFAULT_CUT_INTERVAL_MS;
   let rightInterval = DEFAULT_CUT_INTERVAL_MS * 3;
-  let bookInterval = DEFAULT_CUT_INTERVAL_MS;
   let bookDirection = 1;
   let cursorActive = false;
   let cursorX = 0;
@@ -89,7 +88,6 @@
     const edgeProgress = Math.min(1, Math.abs(position - 0.5) * 2);
     const slowdown = edgeProgress ** 2 * (3 - 2 * edgeProgress);
     const interval = CENTER_CUT_INTERVAL_MS + slowdown * (EDGE_CUT_INTERVAL_MS - CENTER_CUT_INTERVAL_MS);
-    bookInterval = interval;
     bookDirection = position < 0.5 ? -1 : 1;
     cursorActive = true;
     if (position < 0.5) {
@@ -117,7 +115,6 @@
     let lastFrame;
     let leftRate = 1 / leftInterval;
     let rightRate = 1 / rightInterval;
-    let bookRate = 1 / bookInterval;
     let leftBeat = 0;
     let rightBeat = 0;
     let frame = requestAnimationFrame(tick);
@@ -130,7 +127,6 @@
         const blend = 1 - Math.exp(-elapsed / TEMPO_RESPONSE_MS);
         leftRate += (1 / leftInterval - leftRate) * blend;
         rightRate += (1 / rightInterval - rightRate) * blend;
-        bookRate += (1 / bookInterval - bookRate) * blend;
         leftBeat += elapsed * leftRate;
         rightBeat += elapsed * rightRate;
 
@@ -143,7 +139,8 @@
           rightBeat -= 1;
         }
       }
-      book?.setLandingTempo(bookDirection * DEFAULT_CUT_INTERVAL_MS * bookRate, playing && cursorActive, elapsed);
+      const activeImageRate = bookDirection < 0 ? leftRate : rightRate;
+      book?.setLandingTempo(bookDirection * DEFAULT_CUT_INTERVAL_MS * activeImageRate * 0.85, playing && cursorActive, elapsed);
       frame = requestAnimationFrame(tick);
     }
 
@@ -223,9 +220,7 @@
       left: 0;
       transform: translate3d(var(--cursor-x), var(--cursor-y), 0) translate(-50%, -50%);
       z-index: 30;
-      mix-blend-mode: difference;
     }
-    .landing-book.following :global(.wordmark-cursor img) { filter: invert(1); }
   }
   .stage { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .panel { position: relative; overflow: hidden; }

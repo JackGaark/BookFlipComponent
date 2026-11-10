@@ -55,6 +55,7 @@
 		position: absolute;
 		display: block;
 		max-width: none;
+		filter: brightness(0) invert(1);
 	}
 	.letter-s { left: 14.3672px; top: 32.3281px; }
 	.letter-b { left: 71.8359px; top: 35.9219px; }
