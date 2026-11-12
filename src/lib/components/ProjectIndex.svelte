@@ -3,6 +3,8 @@
 <script>
 	import { createEventDispatcher } from 'svelte';
 	import { _ } from 'svelte-i18n';
+	import { introLayouts } from './intro-layouts';
+	import { featuredProjects } from './project-details';
 
 	export let projects = [];
 	const dispatch = createEventDispatcher();
@@ -35,12 +37,22 @@
 		14: { title: 'Fall OOH Campaign, DAVIDs TEA' },
 		15: { title: 'SAXX Father’s Day' }
 	};
+	// Projects shown on the Work page preview with that same image and crop format.
+	// Osei Duro borrows the Accra portrait, as in the Figma index.
+	const workAssets = { 1: 5 };
+	featuredProjects.forEach((project, asset) => (workAssets[project.projectId] = asset));
+	const workFormat = (asset) => {
+		const card = introLayouts[2].find((large) => large.asset === asset);
+		return card.w / card.h;
+	};
 	let filter = 'All';
 	let measuredSource = '';
 	let previewRatio = 1;
 	let hovered = null;
 	let hoveredRowTop = 0;
 	let hoveredRowIndex = 0;
+	let innerWidth = 1440;
+	let rowsHeight = 0;
 	$: visibleProjects = projects.filter(
 		(project) =>
 			filter === 'All' ||
@@ -52,13 +64,20 @@
 	$: if (filter === 'Client')
 		visibleProjects = [...visibleProjects].sort((a, b) => $_(a.title).localeCompare($_(b.title)));
 	$: activeProject = projects.find((project) => project.id === hovered);
+	$: workAsset = workAssets[activeProject?.id];
 	$: preview =
-		activeProject?.id === 1
-			? '/images/intro/image-5.jpg'
-			: activeProject?.id === 7
-				? '/images/intro/image-3.jpg'
-				: activeProject?.slidesData.find((slide) => slide.type === 'image')?.src;
+		workAsset === undefined
+			? activeProject?.slidesData.find((slide) => slide.type === 'image')?.src
+			: `/images/intro/image-${workAsset}.jpg`;
+	$: previewFormat = workAsset === undefined ? previewRatio : workFormat(workAsset);
 	$: previewAbove = hoveredRowIndex >= Math.ceil(visibleProjects.length / 2);
+	// Figma index: vertical previews are 383px wide and wide ones 500px, at a 1440px viewport.
+	$: previewWidth = (previewFormat < 1 ? 383 : 500) * Math.min(1, innerWidth / 1440);
+	$: previewHeight = previewWidth / previewFormat;
+	// Hang from the hovered row, or sit on it in the lower half, without leaving the list.
+	$: previewTop = previewAbove
+		? Math.max(0, hoveredRowTop - previewHeight)
+		: Math.min(hoveredRowTop, Math.max(0, rowsHeight - previewHeight));
 	function showPreview(event, project, index) {
 		hovered = project.id;
 		hoveredRowTop = event.currentTarget.offsetTop;
@@ -70,6 +89,8 @@
 	}
 </script>
 
+<svelte:window bind:innerWidth />
+
 <section class="project-index" aria-label="Project index">
 	<div class="filters" aria-label="Filter projects">
 		{#each filters as item}
@@ -80,7 +101,7 @@
 			>
 		{/each}
 	</div>
-	<div class="rows" on:mouseleave={() => (hovered = null)}>
+	<div class="rows" bind:clientHeight={rowsHeight} on:mouseleave={() => (hovered = null)}>
 		{#each visibleProjects as project, index (project.id)}
 			<button
 				class="project-row"
@@ -99,9 +120,8 @@
 		{#if preview}
 			<img
 				class="preview"
-				class:above={previewAbove}
 				class:ready={measuredSource === preview}
-				style={`top:${hoveredRowTop}px;--preview-ratio:${Math.sqrt(previewRatio)};`}
+				style={`top:${previewTop}px;width:${previewWidth}px;height:${previewHeight}px;`}
 				on:load={(event) => {
 					previewRatio = event.currentTarget.naturalWidth / event.currentTarget.naturalHeight;
 					measuredSource = preview;
@@ -189,12 +209,9 @@
 	}
 	.preview {
 		position: absolute;
-		left: calc(49.23% - 84px);
-		width: clamp(260px, calc(340px * var(--preview-ratio)), 560px);
-		max-width: calc(100% - (49.23% - 84px));
+		left: 50%;
+		object-fit: cover;
 		opacity: 0;
-		height: auto;
-
 		pointer-events: none;
 		z-index: 1;
 	}
@@ -202,17 +219,9 @@
 		opacity: 1;
 		transition: opacity 150ms ease-out;
 	}
-	.preview.above {
-		transform: translateY(-100%);
-	}
 	@media (max-width: 1000px) {
 		.project-row {
 			font-size: clamp(18px, 2.5vw, 36px);
-		}
-		.preview {
-			left: 44%;
-			width: clamp(20vw, calc(27vw * var(--preview-ratio)), 44vw);
-			max-width: 56%;
 		}
 	}
 	@media (max-width: 600px) {
