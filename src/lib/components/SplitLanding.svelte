@@ -287,53 +287,44 @@
 		});
 		const TEMPO_RESPONSE_MS = 180;
 		let lastFrame;
-		let leftRate = 1 / leftInterval;
-		let rightRate = 1 / rightInterval;
+		const left = { rate: 1 / leftInterval, beat: 0 };
+		const right = { rate: 1 / rightInterval, beat: 0 };
+		const clocks = { [-1]: left, 1: right };
 		let dial = 0;
 		let activeSide = 0;
-		let leftBeat = 0;
-		let rightBeat = 0;
 		let frame = requestAnimationFrame(tick);
+
+		/** Advance both image clocks and return the dial position to paint. */
+		function advanceClocks(elapsed, side) {
+			const blend = 1 - Math.exp(-elapsed / TEMPO_RESPONSE_MS);
+			left.rate += (1 / leftInterval - left.rate) * blend;
+			right.rate += (1 / rightInterval - right.rate) * blend;
+			let paint = dial;
+			if (side) {
+				const next = stepDial(dial, clocks[side].beat, elapsed * clocks[side].rate, side);
+				dial = next.position;
+				paint = next.paint;
+			}
+			left.beat += elapsed * left.rate;
+			right.beat += elapsed * right.rate;
+			if (left.beat >= 1) {
+				leftCurrent = (leftCurrent + 1) % pairs.length;
+				left.beat -= 1;
+			}
+			if (right.beat >= 1) {
+				rightCurrent = (rightCurrent + 1) % pairs.length;
+				right.beat -= 1;
+			}
+			return paint;
+		}
 
 		function tick(now) {
 			const elapsed = Math.min(now - (lastFrame ?? now), 50);
 			lastFrame = now;
-
 			const side = cursorActive ? bookDirection : 0;
-			if (side && side !== activeSide) {
-				const beat = dialBeat(dial, side);
-				if (side < 0) leftBeat = beat;
-				else rightBeat = beat;
-			}
+			if (side && side !== activeSide) clocks[side].beat = dialBeat(dial, side);
 			activeSide = side;
-			let dialPaint = dial;
-			if (playing) {
-				const blend = 1 - Math.exp(-elapsed / TEMPO_RESPONSE_MS);
-				leftRate += (1 / leftInterval - leftRate) * blend;
-				rightRate += (1 / rightInterval - rightRate) * blend;
-				if (cursorActive) {
-					const next = stepDial(
-						dial,
-						bookDirection < 0 ? leftBeat : rightBeat,
-						elapsed * (bookDirection < 0 ? leftRate : rightRate),
-						bookDirection
-					);
-					dial = next.position;
-					dialPaint = next.paint;
-				}
-				leftBeat += elapsed * leftRate;
-				rightBeat += elapsed * rightRate;
-
-				if (leftBeat >= 1) {
-					leftCurrent = (leftCurrent + 1) % pairs.length;
-					leftBeat -= 1;
-				}
-				if (rightBeat >= 1) {
-					rightCurrent = (rightCurrent + 1) % pairs.length;
-					rightBeat -= 1;
-				}
-			}
-			book?.setDialPosition(dialPaint);
+			book?.setDialPosition(playing ? advanceClocks(elapsed, side) : dial);
 			frame = requestAnimationFrame(tick);
 		}
 

@@ -140,7 +140,6 @@
 	function changeZoom(value) {
 		if (zoom === value) return;
 		zoom = value;
-		dispatch('zoomgesture', 'sliderMove');
 	}
 
 	/** @param {Event & { currentTarget: HTMLInputElement }} event */
@@ -167,7 +166,6 @@
 		settlingThumb = false;
 		zoomPointerReleased = false;
 		draggingZoom = true;
-		dispatch('zoomgesture', 'sliderGrab');
 	}
 
 	function releaseZoom() {
@@ -178,7 +176,6 @@
 		keyboardZoom = false;
 		snappedZoom = null;
 		settlingThumb = false;
-		dispatch('zoomgesture', 'sliderRelease');
 	}
 
 	function blurZoomInput() {
@@ -222,32 +219,33 @@
 		event.preventDefault();
 		settlingThumb = false;
 		keyboardZoom = true;
-		dispatch('zoomgesture', 'sliderGrab');
 		changeZoom(Math.max(0, Math.min(100, Math.round(zoom) + direction)));
 	}
 
+	const SCROLL_KEYS = new Set([
+		'PageUp',
+		'PageDown',
+		' ',
+		'Home',
+		'End',
+		'ArrowUp',
+		'ArrowDown',
+		'ArrowLeft',
+		'ArrowRight'
+	]);
+
+	function isScrollIntent(event) {
+		if (event.type === 'wheel') return !event.ctrlKey;
+		if (event.type === 'keydown') return event.target !== zoomInput && SCROLL_KEYS.has(event.key);
+		return true;
+	}
+
 	function alignGallery(event) {
-		if (event.type === 'wheel' && event.ctrlKey) return;
-		if (
-			event.type === 'keydown' &&
-			(event.target === zoomInput ||
-				![
-					'PageUp',
-					'PageDown',
-					' ',
-					'Home',
-					'End',
-					'ArrowUp',
-					'ArrowDown',
-					'ArrowLeft',
-					'ArrowRight'
-				].includes(event.key))
-		)
-			return;
-		if (view !== 'work' || studioOpen || draggingZoom || keyboardZoom || zoom === nearestStop(zoom))
-			return;
+		if (!isScrollIntent(event)) return;
+		const stop = nearestStop(zoom);
+		if (view !== 'work' || studioOpen || draggingZoom || keyboardZoom || zoom === stop) return;
 		settlingThumb = true;
-		changeZoom(nearestStop(zoom));
+		changeZoom(stop);
 	}
 
 	function handleGalleryWheel(event) {

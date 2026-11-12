@@ -1,11 +1,13 @@
 export const CIRCLE = 15;
-export const CAPSULE = 36;
-export const SNAP_ENTER_PX = 32;
-export const SNAP_EXIT_PX = 72;
+// Width of expanded.svg, whose halves are pulled apart to reach CAPSULE.
+const CAPSULE_ART = 29;
+const CAPSULE = 36;
+const SNAP_ENTER_PX = 32;
+const SNAP_EXIT_PX = 72;
 export const THUMB_SPRING = { stiffness: 0.25, damping: 0.9, precision: 0.001 };
 
 /** @param {number} value */
-export const clampZoom = (value) => Math.max(0, Math.min(100, value));
+const clampZoom = (value) => Math.max(0, Math.min(100, value));
 
 /** @param {number} value */
 export const nearestStop = (value) => Math.round(clampZoom(value) / 50) * 50;
@@ -46,8 +48,8 @@ export function thumbAppearance(value, movement = 1) {
 		position,
 		stretch,
 		circleScale: 1 + (CAPSULE / CIRCLE - 1) * stretch,
-		capOffset: ((CAPSULE - 29) / 2) * stretch,
-		bridgeScale: 1 + (CAPSULE - 29) * stretch,
+		capOffset: ((CAPSULE - CAPSULE_ART) / 2) * stretch,
+		bridgeScale: 1 + (CAPSULE - CAPSULE_ART) * stretch,
 		squash: 1 - 0.08 * stretch,
 		circleOpacity: 1 - Math.max(0, (stretch - 0.9) / 0.1)
 	};
