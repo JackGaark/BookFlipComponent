@@ -22,29 +22,41 @@
 		'Packaging Design',
 		'Experiential Activations'
 	];
-	const clients = [
-		'Nike',
-		'Herschel Supply',
-		'Little Burgundy Shoes',
-		'Kombi',
-		'Altitude Sports',
-		'Ground Sounds',
-		'Saje Wellness',
-		'Fable Home',
-		'Nine Point Cannabis PR',
-		'Frank Ghery, The Grand LA',
-		'Osei Duro',
-		'HIRRS Bodywear',
-		'La Firme',
-		'Alain Carle Architect',
-		'Call It Spring',
-		'ALDO',
-		'DAVIDs TEA',
-		'Kit & Ace',
-		'Eddie Bauer',
-		'enRoute',
-		'SAXX',
-		'RISE Kombucha'
+	const clientColumns = [
+		[
+			'Alain Carle Architect',
+			'ALDO',
+			'Altitude Sports',
+			'BLVD Shoes',
+			'Bosa Properties',
+			'Call It Spring',
+			'DAVIDs TEA',
+			'Duer',
+			'Eddie Bauer',
+			'enRoute',
+			'Fable Home',
+			'Frank Gehry, The Grand LA',
+			'Ground Sounds',
+			'Herschel Supply',
+			'HIRRS Bodywear'
+		],
+		[
+			'Independent Spirits Co.',
+			'Kamik',
+			'Kit & Ace',
+			'Kombi',
+			'La Firme',
+			'Little Burgundy Shoes',
+			'Nike',
+			'Nine Point Cannabis PR',
+			'Osei Duro',
+			'RISE Kombucha',
+			'Rise Theatre Directory',
+			'Saje Wellness',
+			'SAXX',
+			'Submission Beauty',
+			'Ward &'
+		]
 	];
 
 	onMount(() => {
@@ -167,9 +179,13 @@
 				</section>
 				<section aria-labelledby="studio-clients-title">
 					<h2 id="studio-clients-title">Client List</h2>
-					<ul>
-						{#each clients as client}<li>{client}</li>{/each}
-					</ul>
+					<div class="client-columns">
+						{#each clientColumns as clients}
+							<ul>
+								{#each clients as client}<li>{client}</li>{/each}
+							</ul>
+						{/each}
+					</div>
 				</section>
 			</div>
 		</div>
@@ -327,15 +343,20 @@
 		margin: 0 0 12px;
 	}
 	.intro {
-		font-size: clamp(24px, 2.5vw, 48px);
+		font-size: clamp(24px, 2.916667vw, 42px);
 		font-weight: 500;
-		line-height: 1.44;
+		line-height: 1.25;
 		margin: 0;
 	}
 	.studio-lists {
 		margin-top: 80px;
 		display: grid;
-		gap: 55px;
+		grid-template-columns: 1fr 1fr;
+	}
+	.client-columns {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 16px;
 	}
 	.studio-lists h2 {
 		margin-bottom: 24px;
@@ -416,6 +437,10 @@
 		}
 		.contact {
 			padding: 40px 24px 64px;
+		}
+		.studio-lists {
+			grid-template-columns: 1fr;
+			gap: 55px;
 		}
 		.intro {
 			font-size: 25px;
