@@ -1,7 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
-	import StudioServicesSheets from './StudioServicesSheets.svelte';
 
 	/** @type {{open?: boolean, motion?: 'system' | 'full', onclose?: () => void, onnavigate?: (view: string) => void}} */
 	let { open = false, motion = 'system', onclose = () => {}, onnavigate = () => {} } = $props();
@@ -9,6 +8,43 @@
 	let sheet = $state();
 	let section = $state('bonjour');
 	let reducedMotion = $state(true);
+	const services = [
+		'Creative Direction',
+		'Brand Strategy, Naming & Strategy',
+		'Campaign Direction',
+		'Voice & Messaging',
+		'Content Strategy & Creation',
+		'Digital Strategy & Design',
+		'Photography, Film & Motion Direction',
+		'Art Direction',
+		'Editorial Design',
+		'Packaging Design',
+		'Experiential Activations'
+	];
+	const clients = [
+		'Nike',
+		'Herschel Supply',
+		'Little Burgundy Shoes',
+		'Kombi',
+		'Altitude Sports',
+		'Ground Sounds',
+		'Saje Wellness',
+		'Fable Home',
+		'Nine Point Cannabis PR',
+		'Frank Ghery, The Grand LA',
+		'Osei Duro',
+		'HIRRS Bodywear',
+		'La Firme',
+		'Alain Carle Architect',
+		'Call It Spring',
+		'ALDO',
+		'DAVIDs TEA',
+		'Kit & Ace',
+		'Eddie Bauer',
+		'enRoute',
+		'SAXX',
+		'RISE Kombucha'
+	];
 
 	onMount(() => {
 		const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -35,6 +71,7 @@
 			section = 'bonjour';
 			dialog.dataset.visible = 'false';
 			dialog.showModal();
+			dialog.querySelector('.content')?.scrollTo(0, 0);
 		}
 
 		const move = () => {
@@ -104,11 +141,7 @@
 				aria-pressed={section === 'bonjour'}
 				onclick={() => selectSection('bonjour')}>BONJOUR, HI</button
 			>
-			<button
-				class:active={section === 'services'}
-				aria-pressed={section === 'services'}
-				onclick={() => selectSection('services')}>SERVICES &amp; CLIENT LIST</button
-			>
+
 			<button
 				class:active={section === 'contact'}
 				aria-pressed={section === 'contact'}
@@ -116,10 +149,24 @@
 			>
 			<a href="https://www.superbonjour.com/" target="_blank" rel="noreferrer">PREVIOUS SITE</a>
 		</nav>
-		<div class="content" inert={section === 'services'} aria-hidden={section === 'services'}>
+		<div class="content">
 			{#if section !== 'contact'}
 				<h1>{$_('dialog.title')}</h1>
 				<p class="intro">{$_('dialog.leftText')}</p>
+				<div class="studio-lists">
+					<section aria-labelledby="studio-services-title">
+						<h2 id="studio-services-title">Services</h2>
+						<ul>
+							{#each services as service}<li>{service}</li>{/each}
+						</ul>
+					</section>
+					<section aria-labelledby="studio-clients-title">
+						<h2 id="studio-clients-title">Client List</h2>
+						<ul>
+							{#each clients as client}<li>{client}</li>{/each}
+						</ul>
+					</section>
+				</div>
 			{:else}
 				<h1>{$_('dialog.sayHi.title')}</h1>
 				<p class="intro">{$_('dialog.sayHi.p1.text1')}</p>
@@ -143,10 +190,7 @@
 				</div>
 			{/if}
 		</div>
-		<StudioServicesSheets
-			visible={open && section === 'services'}
-			reducedMotion={reducedMotion && motion === 'system'}
-		/>
+
 		<nav class="main-nav" aria-label="Studio navigation">
 			<button onclick={() => onnavigate('work')}>WORK</button>
 			<button onclick={() => onnavigate('index')}>INDEX</button>
@@ -160,7 +204,7 @@
 		position: fixed;
 		transform: translateY(calc(100% + 40px));
 		transition: transform 750ms cubic-bezier(0.23, 1, 0.32, 1);
-		inset: min(4.545dvh, 40px) 5.833333% 0;
+		inset: min(4.545dvh, 40px) 0 0;
 		width: auto;
 		max-width: none;
 		height: auto;
@@ -191,7 +235,7 @@
 		overflow: hidden;
 		height: 100%;
 		display: grid;
-		grid-template-rows: 74px minmax(0, 1fr) 68px;
+		grid-template-rows: 74px minmax(0, 1fr);
 	}
 	button,
 	a {
@@ -223,7 +267,7 @@
 		justify-content: center;
 		align-items: start;
 		padding-top: 18px;
-		gap: 22px;
+		gap: 75px;
 	}
 	.sections button,
 	.sections a {
@@ -239,9 +283,11 @@
 	.content {
 		overflow: auto;
 		overscroll-behavior: contain;
-		padding: 0 10px 24px 16px;
+		padding: 0 6.944444% 40px 6.527778%;
+		scrollbar-width: none;
 	}
-	h1 {
+	h1,
+	h2 {
 		font-family: moret, serif;
 		font-weight: 400;
 		font-size: 14px;
@@ -256,7 +302,10 @@
 		margin: 0;
 	}
 	.main-nav {
-		position: relative;
+		position: absolute;
+		bottom: 40px;
+		left: 50%;
+		transform: translateX(-50%);
 		z-index: 2;
 		display: flex;
 		align-self: center;
@@ -269,6 +318,22 @@
 		font-size: 12px;
 		line-height: 18px;
 		padding: 0 12px;
+	}
+	.studio-lists {
+		margin-top: 80px;
+		display: grid;
+		gap: 55px;
+	}
+	.studio-lists h2 {
+		margin-bottom: 24px;
+	}
+	.studio-lists ul {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		font-size: 16px;
+		font-weight: 500;
+		line-height: 23px;
 	}
 	.columns {
 		display: grid;
@@ -291,8 +356,8 @@
 	}
 	@media (max-width: 600px) {
 		.studio-sheet {
-			left: 16px;
-			right: 16px;
+			left: 0;
+			right: 0;
 			top: 24px;
 		}
 		.sheet-layout {
@@ -305,7 +370,7 @@
 			padding: 16px 12px 0;
 		}
 		.content {
-			padding: 0 16px 24px;
+			padding: 0 24px 96px;
 		}
 		.intro {
 			font-size: 25px;
@@ -313,6 +378,9 @@
 		}
 		.columns {
 			grid-template-columns: 1fr;
+		}
+		.main-nav {
+			bottom: 24px;
 		}
 		.main-nav button {
 			padding-block: 12px;
