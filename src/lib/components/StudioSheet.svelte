@@ -109,7 +109,6 @@
 	/** @param {string} value */
 	function selectSection(value) {
 		section = value;
-		sheet?.querySelector('.content')?.scrollTo(0, 0);
 	}
 </script>
 
@@ -135,61 +134,83 @@
 	}}
 >
 	<div class="sheet-layout">
-		<nav class="sections" aria-label="Studio sections">
-			<button
-				class:active={section === 'bonjour'}
-				aria-pressed={section === 'bonjour'}
-				onclick={() => selectSection('bonjour')}>BONJOUR, HI</button
-			>
+		<button
+			class="section-control"
+			class:active={section === 'bonjour'}
+			aria-pressed={section === 'bonjour'}
+			onclick={() => selectSection('bonjour')}>BONJOUR, HI</button
+		>
 
-			<button
-				class:active={section === 'contact'}
-				aria-pressed={section === 'contact'}
-				onclick={() => selectSection('contact')}>CONTACT</button
-			>
-			<a href="https://www.superbonjour.com/" target="_blank" rel="noreferrer">PREVIOUS SITE</a>
-		</nav>
-		<div class="content">
-			{#if section !== 'contact'}
-				<h1>{$_('dialog.title')}</h1>
-				<p class="intro">{$_('dialog.leftText')}</p>
-				<div class="studio-lists">
-					<section aria-labelledby="studio-services-title">
-						<h2 id="studio-services-title">Services</h2>
-						<ul>
-							{#each services as service}<li>{service}</li>{/each}
-						</ul>
-					</section>
-					<section aria-labelledby="studio-clients-title">
-						<h2 id="studio-clients-title">Client List</h2>
-						<ul>
-							{#each clients as client}<li>{client}</li>{/each}
-						</ul>
-					</section>
-				</div>
-			{:else}
-				<h1>{$_('dialog.sayHi.title')}</h1>
-				<p class="intro">{$_('dialog.sayHi.p1.text1')}</p>
-				<p class="contact-links">
-					<a href="mailto:salut@superbonjour.com">salut@superbonjour.com</a><a
-						href="https://www.instagram.com/super_bonjour/"
-						target="_blank"
-						rel="noreferrer">Instagram ↗</a
-					><a
-						href="https://www.linkedin.com/company/super-bonjour/"
-						target="_blank"
-						rel="noreferrer">LinkedIn ↗</a
-					>
-				</p>
-				<p>{$_('dialog.sayHi.p1.text4')}</p>
-				<div class="columns addresses">
-					{#each ['address1', 'address2'] as address}<section>
-							<h1>{@html $_(`dialog.sayHi.${address}.title`)}</h1>
-							<p>{$_(`dialog.sayHi.${address}.text`)}</p>
-						</section>{/each}
-				</div>
-			{/if}
-		</div>
+		<button
+			class="section-control"
+			class:active={section === 'contact'}
+			aria-pressed={section === 'contact'}
+			onclick={() => selectSection('contact')}>CONTACT</button
+		>
+		<a class="section-control" href="https://www.superbonjour.com/" target="_blank" rel="noreferrer"
+			>PREVIOUS SITE</a
+		>
+		{#key section}
+			<div class="content" class:contact={section === 'contact'}>
+				{#if section !== 'contact'}
+					<h1>{$_('dialog.title')}</h1>
+					<p class="intro">{$_('dialog.leftText')}</p>
+					<div class="studio-lists">
+						<section aria-labelledby="studio-services-title">
+							<h2 id="studio-services-title">Services</h2>
+							<ul>
+								{#each services as service}<li>{service}</li>{/each}
+							</ul>
+						</section>
+						<section aria-labelledby="studio-clients-title">
+							<h2 id="studio-clients-title">Client List</h2>
+							<ul>
+								{#each clients as client}<li>{client}</li>{/each}
+							</ul>
+						</section>
+					</div>
+				{:else}
+					<h1>Contact</h1>
+					<div class="contact-copy">
+						<p>
+							We work with brands and businesses seeking strategy informed by cultural relevance and
+							design that safeguards value and longevity. We advocate for progressive, sustainable
+							lifestyles and we believe in accountability. We also believe in multiple time
+							dimensions, but that’s beside the point.
+						</p>
+						<p>
+							Contact us if any of that sounds right to you. You can get in touch
+							<span class="flower" aria-hidden="true">✿</span>
+							<a href="mailto:salut@superbonjour.com">via email</a>. Or
+							<span class="pencil" aria-hidden="true">✎</span> slide into
+							<a href="https://www.instagram.com/super_bonjour/" target="_blank" rel="noreferrer"
+								>our DMs</a
+							>
+							if that’s your <span class="smile" aria-hidden="true">ツ</span> thing.
+						</p>
+						<p>Super Bonjour is founded by Reanna Evoy (PST) & Vanda Daftari (EST).</p>
+					</div>
+					<p class="contact-links">
+						<a href="mailto:salut@superbonjour.com">GENERAL INQUIRIES</a> ·
+						<a href="https://www.instagram.com/super_bonjour/" target="_blank" rel="noreferrer"
+							>IG</a
+						>
+						·
+						<a
+							href="https://www.linkedin.com/company/super-bonjour/"
+							target="_blank"
+							rel="noreferrer">LINKEDIN</a
+						>
+					</p>
+					<p class="land-acknowledgment">
+						We acknowledge that in Vancouver we operate on unceded Coast Salish territory of the
+						sḵwx̱wú7mesh (Squamish), sel̓íl̓witulh (Tsleil-Waututh), and xʷməθkʷəy̓əm (Musqueam) nations
+						and that in Tiohtiá:ke (known as Montreal) we operate on the unceded traditional
+						territory of the Kanien’kehá:ka Nation.
+					</p>
+				{/if}
+			</div>
+		{/key}
 
 		<nav class="main-nav" aria-label="Studio navigation">
 			<button onclick={() => onnavigate('work')}>WORK</button>
@@ -201,6 +222,8 @@
 
 <style>
 	.studio-sheet {
+		--sheet-enter-duration: 1000ms;
+		--sheet-enter-easing: cubic-bezier(0.7, 0, 0.3, 1);
 		position: fixed;
 		transform: translateY(calc(100% + 40px));
 		transition: transform 750ms cubic-bezier(0.23, 1, 0.32, 1);
@@ -214,14 +237,14 @@
 		border: 0;
 		overflow: visible;
 		background: #fff;
-		color: #000;
 		box-shadow: 0 -5px 20px 0 rgb(189 98 255 / 40%);
+		color: #000;
 		font-family: roc-grotesk, sans-serif;
 	}
 	.studio-sheet:global([data-visible='true']) {
 		transform: translateY(0);
-		transition-duration: 1000ms;
-		transition-timing-function: cubic-bezier(0.7, 0, 0.3, 1);
+		transition-duration: var(--sheet-enter-duration);
+		transition-timing-function: var(--sheet-enter-easing);
 	}
 	.studio-sheet[data-reduced-motion='true'] {
 		transition: none;
@@ -232,10 +255,10 @@
 	.sheet-layout {
 		position: relative;
 		isolation: isolate;
-		overflow: hidden;
 		height: 100%;
 		display: grid;
-		grid-template-rows: 74px minmax(0, 1fr);
+		grid-template: minmax(0, 1fr) / 1fr max-content max-content max-content 1fr;
+		--section-gap: 75px;
 	}
 	button,
 	a {
@@ -260,30 +283,35 @@
 	.active {
 		color: #bd62ff;
 	}
-	.sections {
-		position: relative;
-		z-index: 2;
-		display: flex;
-		justify-content: center;
-		align-items: start;
-		padding-top: 18px;
-		gap: 75px;
-	}
-	.sections button,
-	.sections a {
+	.section-control {
+		grid-row: 1;
+		align-self: start;
+		z-index: 1;
+		margin-top: 8px;
+		padding: 8px 0;
 		font-family: moret, serif;
 		font-size: 10px;
 		font-weight: 400;
-		line-height: 13px;
+		line-height: normal;
 		white-space: nowrap;
+		-webkit-text-stroke: 3px #fff;
+		paint-order: stroke fill;
 	}
-	.sections a {
-		padding: 8px 0;
+	.section-control:nth-child(1) {
+		grid-column: 2;
+	}
+	.section-control:nth-child(2) {
+		grid-column: 3;
+		margin-inline: var(--section-gap);
+	}
+	.section-control:nth-child(3) {
+		grid-column: 4;
 	}
 	.content {
+		grid-area: 1 / 1 / 2 / -1;
 		overflow: auto;
 		overscroll-behavior: contain;
-		padding: 0 6.944444% 40px 6.527778%;
+		padding: 58px 6.944444% 80px 6.527778%;
 		scrollbar-width: none;
 	}
 	h1,
@@ -335,24 +363,50 @@
 		font-weight: 500;
 		line-height: 23px;
 	}
-	.columns {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 32px;
+	.studio-sheet:has(.contact) {
+		box-shadow: 0 -5px 20px 0 rgb(0 0 255 / 40%);
+	}
+	.studio-sheet[data-reduced-motion='false'] .contact {
+		animation: contact-enter var(--sheet-enter-duration) var(--sheet-enter-easing);
+	}
+	@keyframes contact-enter {
+		from {
+			transform: translateY(100%);
+		}
+	}
+	.contact-copy {
+		margin-top: 32px;
+		font-size: clamp(24px, 2.5vw, 36px);
+		font-weight: 500;
+		line-height: 1.48;
+	}
+	.contact-copy p {
+		margin: 0;
+	}
+	.contact a {
+		font: inherit;
+	}
+	.contact-copy a,
+	.pencil {
+		color: #00f;
+	}
+	.flower {
+		color: #f00;
+	}
+	.smile {
+		color: #fd8204;
 	}
 	.contact-links {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 24px;
-		margin: 32px 0;
-		font-size: clamp(18px, 2vw, 28px);
+		margin: 16px 0 48px;
+		font-size: 12px;
+		font-weight: 500;
 	}
 	.contact-links a {
 		text-decoration: underline;
-		text-underline-offset: 4px;
 	}
-	.addresses {
-		margin-top: 40px;
+	.land-acknowledgment {
+		margin: 0;
+		font-size: 10px;
 	}
 	@media (max-width: 600px) {
 		.studio-sheet {
@@ -361,23 +415,14 @@
 			top: 24px;
 		}
 		.sheet-layout {
-			grid-template-rows: 90px minmax(0, 1fr) 72px;
-		}
-		.sections {
-			flex-wrap: wrap;
-			align-content: start;
-			gap: 0 16px;
-			padding: 16px 12px 0;
+			--section-gap: 16px;
 		}
 		.content {
-			padding: 0 24px 96px;
+			padding: 58px 24px 96px;
 		}
 		.intro {
 			font-size: 25px;
 			line-height: 1.35;
-		}
-		.columns {
-			grid-template-columns: 1fr;
 		}
 		.main-nav {
 			bottom: 24px;
