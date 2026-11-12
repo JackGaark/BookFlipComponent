@@ -1,4 +1,5 @@
 <script>
+	import SiteMenu from './SiteMenu.svelte';
 	import { onMount } from 'svelte';
 	import { _ } from 'svelte-i18n';
 
@@ -211,11 +212,16 @@
 			</div>
 		{/if}
 
-		<nav class="main-nav" aria-label="Studio navigation">
-			<button onclick={() => onnavigate('work')}>WORK</button>
-			<button onclick={() => onnavigate('index')}>INDEX</button>
-			<button class="active" aria-label="Close Studio" onclick={onclose}>STUDIO</button>
-		</nav>
+		<div class="main-nav" style="--menu-background: rgb(226 238 117 / 30%)">
+			<SiteMenu
+				label="Studio navigation"
+				active="studio"
+				onwork={() => onnavigate('work')}
+				onindex={() => onnavigate('index')}
+				onstudio={onclose}
+				studioLabel="Close Studio"
+			/>
+		</div>
 	</div>
 </dialog>
 
@@ -328,24 +334,6 @@
 		line-height: 1.44;
 		margin: 0;
 	}
-	.main-nav {
-		position: absolute;
-		bottom: 30px;
-		left: 50%;
-		transform: translateX(-50%);
-		z-index: 2;
-		display: flex;
-		align-self: center;
-		justify-self: center;
-		justify-content: space-around;
-		width: 245px;
-		background: rgb(226 238 117 / 30%);
-	}
-	.main-nav button {
-		font-size: 12px;
-		line-height: 18px;
-		padding: 0 12px;
-	}
 	.studio-lists {
 		margin-top: 80px;
 		display: grid;
@@ -431,12 +419,6 @@
 		.intro {
 			font-size: 25px;
 			line-height: 1.35;
-		}
-		.main-nav {
-			bottom: 24px;
-		}
-		.main-nav button {
-			padding-block: 12px;
 		}
 	}
 </style>

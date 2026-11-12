@@ -17,17 +17,17 @@ it('uses the original artwork and preserves wipe progress through pauses and rev
 	expect(image.getBoundingClientRect().height).toBeCloseTo(34.44645, 1);
 	expect(getComputedStyle(screen.container.firstElementChild).pointerEvents).toBe('none');
 
-	screen.component.setLandingTempo(1, true, 396);
+	screen.component.setDialPosition(4);
 	const forward = artwork.style.maskImage;
 	const pages = [...screen.container.querySelectorAll('.wordmark-cursor__page')];
 	expect(new Set(pages.map((page) => page.style.transform)).size).toBeGreaterThan(1);
 	expect(forward).toContain('conic-gradient');
-	screen.component.setLandingTempo(1, false, 100);
+	screen.component.setDialPosition(4);
 	expect(artwork.style.maskImage).toBe(forward);
-	screen.component.setLandingTempo(1, true, 66);
+	screen.component.setDialPosition(5);
 	expect(artwork.style.maskImage).not.toBe(forward);
-	screen.component.setLandingTempo(-1, true, 66);
+	screen.component.setDialPosition(4);
 	expect(artwork.style.maskImage).toBe(forward);
-	screen.component.setLandingTempo(-1, true, 396);
+	screen.component.setDialPosition(0);
 	expect(artwork.style.maskImage).toBe('none');
 });

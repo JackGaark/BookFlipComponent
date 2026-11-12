@@ -1,6 +1,8 @@
 <svelte:options runes={false} />
 
 <script>
+  import SiteLogo from '#lib/components/SiteLogo.svelte';
+  import SiteMenu from '#lib/components/SiteMenu.svelte';
   import ProjectView from '#lib/components/ProjectView.svelte';
   import SlidingIntro from '#lib/components/SlidingIntro.svelte';
   import SplitLanding from '#lib/components/SplitLanding.svelte';
@@ -1157,16 +1159,28 @@
 {#if introOpen}
   <SlidingIntro bind:zoom={introZoom} bind:view={introView} projects={projectsArray.slice(0, MAX_DISPLAY_PROJECT)} studioOpen={modalOpen} on:select={openIntroProject} on:studio={showModal} on:closestudio={hideModal} />
 {:else}
-<header class="project-header">
-  <button class="project-logo" aria-label="Super Bonjour home" on:click={() => { introView = 'work'; introOpen = true; window.scrollTo(0, 0); }}>
-    <img src="/images/intro/logo.png" alt="Super Bonjour" />
-  </button>
-  <nav aria-label="Project navigation">
-    <button class="active" on:click={() => { introView = 'work'; introOpen = true; window.scrollTo(0, 0); }}>WORK</button>
-    <button on:click={() => { introView = 'index'; introOpen = true; window.scrollTo(0, 0); }}>INDEX</button>
-    <button on:click={showModal}>STUDIO</button>
-  </nav>
-</header>
+		<SiteLogo
+			dark
+			onclick={() => {
+				introView = 'work';
+				introOpen = true;
+				window.scrollTo(0, 0);
+			}}
+		/>
+		<SiteMenu
+			active="work"
+			onwork={() => {
+				introView = 'work';
+				introOpen = true;
+				window.scrollTo(0, 0);
+			}}
+			onindex={() => {
+				introView = 'index';
+				introOpen = true;
+				window.scrollTo(0, 0);
+			}}
+			onstudio={showModal}
+		/>
 <!-- Show a warning in portrait mode to rotate your phone. -->
 <div class="mobile-portrait" style={`width:${innerWidth ? innerWidth + 'px' : '100vw'}`}>
   <div style="position:relative">
@@ -1209,56 +1223,6 @@
   :global(body) {
     padding: 0;
   }
-  .project-header {
-    position: absolute;
-    top: 20px;
-    left: 0;
-    right: 0;
-    z-index: 5;
-    max-width: 1440px;
-    height: 18px;
-    margin: 0 auto;
-  }
-  .project-header button {
-    padding: 0;
-    margin: 0;
-    border: 0;
-    background: transparent;
-    color: #000;
-    font-family: roc-grotesk, sans-serif;
-    font-size: 10px;
-    font-weight: 500;
-    line-height: 12px;
-    cursor: pointer;
-  }
-  .project-logo {
-    position: absolute;
-    left: 5.15%;
-    top: 0;
-    width: 44px;
-    height: 18px;
-  }
-  .project-logo img {
-    display: block;
-    width: 44px;
-    height: 18px;
-    object-fit: contain;
-  }
-  .project-header nav {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 16px;
-  }
-  .project-header button.active {
-    color: #bd62ff;
-  }
-  .project-header button:focus-visible {
-    outline: 2px solid #bd62ff;
-    outline-offset: 5px;
-  }
   .mobile-portrait {
     display: none;
   }
@@ -1283,11 +1247,6 @@
       line-height: 1.3;
       margin-top: 1rem;
       margin-bottom: 1rem;
-    }
-  }
-  @media screen and (max-width: 600px) {
-    .project-logo {
-      left: 20px;
     }
   }
 </style>

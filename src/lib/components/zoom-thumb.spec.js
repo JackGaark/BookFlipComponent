@@ -1,14 +1,18 @@
 import { describe, it, expect } from 'vitest';
-import { detent, thumbShape, thumbAppearance } from './zoom-thumb.js';
+import { detent, thumbShape, thumbAppearance, nearestStop } from './zoom-thumb.js';
 
 describe('zoom thumb detent', () => {
 	it.each([300, 1200])('captures and holds all three stops on a %ipx track', (travel) => {
-		const units = (px) => px * 100 / travel;
+		const units = (px) => (px * 100) / travel;
 		for (const stop of [0, 50, 100]) {
 			for (const direction of stop === 0 ? [1] : stop === 100 ? [-1] : [-1, 1]) {
-				expect(detent(stop + direction * units(19), null, travel)).toEqual({ value: stop, snapped: stop });
-				expect(detent(stop + direction * units(47), stop, travel)).toEqual({ value: stop, snapped: stop });
-				const free = stop + direction * units(49);
+				expect(
+					detent(stop + direction * units(Math.min(31, travel * 0.11 - 1)), null, travel)
+				).toEqual({ value: stop, snapped: stop });
+				expect(
+					detent(stop + direction * units(Math.min(71, travel * 0.24 - 1)), stop, travel)
+				).toEqual({ value: stop, snapped: stop });
+				const free = stop + direction * units(Math.min(73, travel * 0.24 + 1));
 				expect(detent(free, stop, travel)).toEqual({ value: free, snapped: null });
 			}
 		}
@@ -36,7 +40,10 @@ describe('zoom thumb shape', () => {
 	it('returns to a circle at any resting position without shifting the zoom', () => {
 		for (const position of [0, 13, 25, 41, 50, 67, 75, 89, 100]) {
 			expect(thumbAppearance(position, 0)).toMatchObject({
-				position, stretch: 0, circleScale: 1, circleOpacity: 1
+				position,
+				stretch: 0,
+				circleScale: 1,
+				circleOpacity: 1
 			});
 		}
 	});
@@ -45,7 +52,12 @@ describe('zoom thumb shape', () => {
 			expect(thumbAppearance(stop)).toMatchObject({ stretch: 0, circleScale: 1, circleOpacity: 1 });
 		}
 		for (const middle of [25, 75]) {
-			expect(thumbAppearance(middle)).toMatchObject({ stretch: 1, capsuleScale: 1 });
+			expect(thumbAppearance(middle)).toMatchObject({
+				stretch: 1,
+				capOffset: 3.5,
+				bridgeScale: 8,
+				squash: 0.92
+			});
 			expect(thumbAppearance(middle).circleOpacity).toBeCloseTo(0);
 		}
 	});
@@ -60,4 +72,10 @@ describe('zoom thumb shape', () => {
 		expect(thumbShape(-1)).toBe(0);
 		expect(thumbShape(101)).toBe(0);
 	});
+});
+
+it('aligns an off-stop zoom to the nearest gallery stop', () => {
+	expect(nearestStop(37)).toBe(50);
+	expect(nearestStop(12)).toBe(0);
+	expect(nearestStop(88)).toBe(100);
 });

@@ -1,11 +1,14 @@
 export const CIRCLE = 15;
-export const CAPSULE = 29;
-export const SNAP_ENTER_PX = 20;
-export const SNAP_EXIT_PX = 48;
+export const CAPSULE = 36;
+export const SNAP_ENTER_PX = 32;
+export const SNAP_EXIT_PX = 72;
 export const THUMB_SPRING = { stiffness: 0.25, damping: 0.9, precision: 0.001 };
 
 /** @param {number} value */
 export const clampZoom = (value) => Math.max(0, Math.min(100, value));
+
+/** @param {number} value */
+export const nearestStop = (value) => Math.round(clampZoom(value) / 50) * 50;
 
 /**
  * Hold the three stops until the pointer deliberately leaves their capture band.
@@ -17,9 +20,9 @@ export const clampZoom = (value) => Math.max(0, Math.min(100, value));
 export function detent(raw, snapped, travelWidth) {
 	const value = clampZoom(raw);
 	const width = Math.max(1, travelWidth);
-	const distance = (stop) => Math.abs(value - stop) * width / 100;
-	const enter = Math.min(SNAP_ENTER_PX, width * 0.08);
-	const exit = Math.min(SNAP_EXIT_PX, width * 0.18);
+	const distance = (stop) => (Math.abs(value - stop) * width) / 100;
+	const enter = Math.min(SNAP_ENTER_PX, width * 0.11);
+	const exit = Math.min(SNAP_EXIT_PX, width * 0.24);
 	if (snapped !== null && distance(snapped) <= exit) {
 		return { value: snapped, snapped };
 	}
@@ -43,7 +46,9 @@ export function thumbAppearance(value, movement = 1) {
 		position,
 		stretch,
 		circleScale: 1 + (CAPSULE / CIRCLE - 1) * stretch,
-		capsuleScale: CIRCLE / CAPSULE + (1 - CIRCLE / CAPSULE) * stretch,
+		capOffset: ((CAPSULE - 29) / 2) * stretch,
+		bridgeScale: 1 + (CAPSULE - 29) * stretch,
+		squash: 1 - 0.08 * stretch,
 		circleOpacity: 1 - Math.max(0, (stretch - 0.9) / 0.1)
 	};
 }

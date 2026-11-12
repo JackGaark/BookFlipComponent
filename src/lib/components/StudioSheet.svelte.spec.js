@@ -24,13 +24,13 @@ it('opens Studio, switches sections, navigates and restores scrolling after dism
 	await expect
 		.poll(() => dialog.querySelector('a[href="mailto:salut@superbonjour.com"]'))
 		.not.toBeNull();
-expect(dialog.querySelector('.studio-content')).toBe(studioContent);
+	expect(dialog.querySelector('.studio-content')).toBe(studioContent);
 	expect(studioContent?.scrollTop).toBe(studioScroll);
 	expect(studioContent?.hasAttribute('inert')).toBe(true);
 	dialog.querySelectorAll('.section-control')[0].click();
 	await expect.poll(() => dialog.querySelector('.contact')).toBeNull();
 	expect(studioContent?.scrollTop).toBe(studioScroll);
-	dialog.querySelector('.main-nav')?.querySelectorAll('button')[1].click();
+	dialog.querySelector('.main-nav nav')?.querySelectorAll('button')[1].click();
 	expect(onnavigate).toHaveBeenCalledWith('index');
 	dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
 	expect(onclose).toHaveBeenCalledOnce();
@@ -70,15 +70,15 @@ it('keeps the full-width sheet scrollable and its navigation visible on desktop 
 		.toBe(40);
 	expect(Math.round(dialog.getBoundingClientRect().width)).toBe(1440);
 	const content = dialog.querySelector('.content');
-	const navTop = dialog.querySelector('.main-nav')?.getBoundingClientRect().top;
+	const navTop = dialog.querySelector('.main-nav nav')?.getBoundingClientRect().top;
 	expect(content?.scrollHeight).toBeGreaterThan(content?.clientHeight ?? 0);
 	content?.scrollTo(0, content.scrollHeight);
-	expect(dialog.querySelector('.main-nav')?.getBoundingClientRect().top).toBe(navTop);
+	expect(dialog.querySelector('.main-nav nav')?.getBoundingClientRect().top).toBe(navTop);
 	expect(dialog.textContent).toContain('Creative Direction');
 	expect(dialog.textContent).toContain('RISE Kombucha');
 	await page.viewport(390, 844);
 	expect(Math.round(dialog.getBoundingClientRect().width)).toBe(390);
-	expect(dialog.querySelector('.main-nav')?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+	expect(dialog.querySelector('.main-nav nav')?.getBoundingClientRect().bottom).toBeLessThanOrEqual(
 		844
 	);
 	await screen.rerender({ open: false });
