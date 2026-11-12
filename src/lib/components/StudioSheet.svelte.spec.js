@@ -17,10 +17,19 @@ it('opens Studio, switches sections, navigates and restores scrolling after dism
 	await expect.poll(() => dialog.open).toBe(true);
 	expect(document.body.style.overflow).toBe('hidden');
 	expect(dialog.textContent).toContain('Hi there, Bonjour and Bienvenue.');
-	dialog.querySelector('.sections')?.querySelectorAll('button')[1].click();
+	const studioContent = dialog.querySelector('.studio-content');
+	studioContent?.scrollTo(0, 150);
+	const studioScroll = studioContent?.scrollTop;
+	dialog.querySelectorAll('.section-control')[1].click();
 	await expect
 		.poll(() => dialog.querySelector('a[href="mailto:salut@superbonjour.com"]'))
 		.not.toBeNull();
+expect(dialog.querySelector('.studio-content')).toBe(studioContent);
+	expect(studioContent?.scrollTop).toBe(studioScroll);
+	expect(studioContent?.hasAttribute('inert')).toBe(true);
+	dialog.querySelectorAll('.section-control')[0].click();
+	await expect.poll(() => dialog.querySelector('.contact')).toBeNull();
+	expect(studioContent?.scrollTop).toBe(studioScroll);
 	dialog.querySelector('.main-nav')?.querySelectorAll('button')[1].click();
 	expect(onnavigate).toHaveBeenCalledWith('index');
 	dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
