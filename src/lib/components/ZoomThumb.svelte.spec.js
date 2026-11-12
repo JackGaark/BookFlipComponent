@@ -28,7 +28,7 @@ describe('zoom handle motion', () => {
 		expect(stretch()).toBeGreaterThan(0.8);
 		const capsule = thumb.querySelector('.zoom-thumb__capsule img');
 		expect(capsule.getBoundingClientRect().width).toBeGreaterThan(26);
-		expect(capsule.getBoundingClientRect().height).toBeGreaterThan(13.79);
+		expect(capsule.getBoundingClientRect().height).toBe(15);
 
 		await expect.poll(stretch, { interval: 10 }).toBeLessThan(0.7);
 		expect(stretch()).toBeGreaterThan(0.05);

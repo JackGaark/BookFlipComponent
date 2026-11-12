@@ -7,12 +7,12 @@ describe('zoom thumb detent', () => {
 		for (const stop of [0, 50, 100]) {
 			for (const direction of stop === 0 ? [1] : stop === 100 ? [-1] : [-1, 1]) {
 				expect(
-					detent(stop + direction * units(Math.min(31, travel * 0.11 - 1)), null, travel)
+					detent(stop + direction * units(Math.min(55, travel * 0.16 - 1)), null, travel)
 				).toEqual({ value: stop, snapped: stop });
 				expect(
-					detent(stop + direction * units(Math.min(71, travel * 0.24 - 1)), stop, travel)
+					detent(stop + direction * units(Math.min(127, travel * 0.24 - 1)), stop, travel)
 				).toEqual({ value: stop, snapped: stop });
-				const free = stop + direction * units(Math.min(73, travel * 0.24 + 1));
+				const free = stop + direction * units(Math.min(129, travel * 0.24 + 1));
 				expect(detent(free, stop, travel)).toEqual({ value: free, snapped: null });
 			}
 		}
@@ -52,12 +52,7 @@ describe('zoom thumb shape', () => {
 			expect(thumbAppearance(stop)).toMatchObject({ stretch: 0, circleScale: 1, circleOpacity: 1 });
 		}
 		for (const middle of [25, 75]) {
-			expect(thumbAppearance(middle)).toMatchObject({
-				stretch: 1,
-				capOffset: 3.5,
-				bridgeScale: 8,
-				squash: 0.92
-			});
+			expect(thumbAppearance(middle)).toMatchObject({ stretch: 1, capsuleScale: 1 });
 			expect(thumbAppearance(middle).circleOpacity).toBeCloseTo(0);
 		}
 	});
