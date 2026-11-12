@@ -212,9 +212,9 @@ export const introLayouts = [
     },
     {
       x: 468,
-      y: 240.5,
+      y: 233,
       w: 124,
-      h: 82.5,
+      h: 90,
       asset: 4,
       id: 26
     },
@@ -284,9 +284,9 @@ export const introLayouts = [
     },
     {
       x: 1108,
-      y: 240.5,
+      y: 233,
       w: 124,
-      h: 82.5,
+      h: 90,
       asset: 4,
       id: 35
     },
@@ -676,9 +676,9 @@ export const introLayouts = [
     },
     {
       x: 468,
-      y: 600.5,
+      y: 593,
       w: 124,
-      h: 82.5,
+      h: 90,
       asset: 4,
       id: 84
     },
@@ -748,9 +748,9 @@ export const introLayouts = [
     },
     {
       x: 1108,
-      y: 600.5,
+      y: 593,
       w: 124,
-      h: 82.5,
+      h: 90,
       asset: 4,
       id: 93
     },
@@ -982,9 +982,9 @@ export const introLayouts = [
     },
     {
       x: 852,
-      y: 368,
+      y: 353,
       w: 248,
-      h: 165,
+      h: 180,
       asset: 4,
       id: 24
     },

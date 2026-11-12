@@ -27,6 +27,14 @@
 		15: ['Campaign'],
 		16: ['Campaign']
 	};
+	// Wording from the Figma index (frame 5687:2615) where it differs from the project titles.
+	const indexTitles = {
+		0: { title: 'Magazine, Herschel' },
+		1: { title: 'Campaign X, Osei Duro' },
+		6: { year: '2019 20 21' },
+		14: { title: 'Fall OOH Campaign, DAVIDs TEA' },
+		15: { title: 'SAXX Father’s Day' }
+	};
 	let filter = 'All';
 	let measuredSource = '';
 	let previewRatio = 1;
@@ -82,8 +90,10 @@
 				on:blur={() => (hovered = null)}
 				on:click={() => dispatch('select', project.id)}
 			>
-				{project.id === 0 ? 'Magazine, Herschel' : $_(project.title).replace(/\s*—\s*$/, '')}
-				<span class="year">{$_(project.title2)}</span>
+				{indexTitles[project.id]?.title ?? $_(project.title).replace(/\s*—\s*$/, '')},
+				<span class="year"
+					>{indexTitles[project.id]?.year ?? $_(project.title2).replace('/', ' ')}</span
+				>
 			</button>
 		{/each}
 		{#if preview}
@@ -105,7 +115,7 @@
 
 <style>
 	.project-index {
-		padding: 105px 74px 100px;
+		padding: 91px 84px 100px;
 	}
 	.filters {
 		position: absolute;
@@ -138,7 +148,7 @@
 		display: block;
 		width: 100%;
 		min-height: 52px;
-		padding: 0 10px;
+		padding: 0 10px 8px;
 		margin: 0;
 		border: 0;
 		border-top: 1px solid #000;
@@ -149,18 +159,24 @@
 		font-family: roc-grotesk, sans-serif;
 		font-size: 36px;
 		font-weight: 500;
-		line-height: 51px;
+		line-height: 43px;
 		cursor: pointer;
 	}
+	/* Figma sets the year as a 36px Moret superscript: it draws at 0.645em, raised 12px, with
+	   the 1px underline 10.2px above the row's baseline (1.8px under the raised figures). */
 	.year {
+		position: relative;
+		top: -0.517em;
 		font-family: moret, serif;
-		font-size: 36px;
+		font-size: 0.645em;
+		font-style: normal;
 		font-weight: 400;
-		text-decoration: underline;
-		text-decoration-thickness: 1px;
-		text-underline-offset: -10px;
-		vertical-align: super;
 		line-height: 0;
+		text-decoration-line: underline;
+		text-decoration-style: solid;
+		text-decoration-skip-ink: auto;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 0.0775em;
 	}
 	.project-row.highlighted {
 		color: #bd62ff;
@@ -173,9 +189,9 @@
 	}
 	.preview {
 		position: absolute;
-		left: calc(49.23% - 74px);
+		left: calc(49.23% - 84px);
 		width: clamp(260px, calc(340px * var(--preview-ratio)), 560px);
-		max-width: calc(100% - (49.23% - 74px));
+		max-width: calc(100% - (49.23% - 84px));
 		opacity: 0;
 		height: auto;
 
@@ -190,7 +206,6 @@
 		transform: translateY(-100%);
 	}
 	@media (max-width: 1000px) {
-		.year,
 		.project-row {
 			font-size: clamp(18px, 2.5vw, 36px);
 		}

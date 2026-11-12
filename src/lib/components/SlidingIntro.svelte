@@ -64,23 +64,23 @@
 	let zoomReleaseTimer;
 	onDestroy(releaseZoom);
 	$: scale = Math.max(width, 720) / 1440;
-	// Build the middle view from the overview order so every card keeps its identity,
-	// crop, and place in the reading sequence at every zoom level.
-	const orderedCards = introLayouts[0].map((small, index) => {
-		const w = 120;
-		const h = w * (small.h / small.w);
-		const row = Math.floor(index / 10);
-		const column = index % 10;
-		const baseline = 293 + row * 240;
-		return {
-			...small,
-			id: index,
-			x: 84 + column * 128,
-			y: baseline - h,
-			w,
-			h
-		};
-	});
+	// The overview tiles the Figma middle layout (frame 5566:2356) twice across and down.
+	// Zooming in unfolds each right-hand tile beneath its left-hand twin, so the first three
+	// rows match the frame and every card keeps its identity and crop at every zoom level.
+	const orderedCards = introLayouts[0]
+		.map((small) => {
+			const column = Math.round((small.x - 84) / 64);
+			const row = Math.round((small.y + small.h - 203) / 120);
+			return {
+				small,
+				asset: small.asset,
+				span: small.w > 60 ? 2 : 1,
+				column: column % 10,
+				row: Math.floor(row / 3) * 6 + Math.floor(column / 10) * 3 + (row % 3)
+			};
+		})
+		.sort((a, b) => a.row - b.row || a.column - b.column)
+		.map((card, id) => ({ ...card, id }));
 	const largeCards = orderedCards.map((card, index) => {
 		const template = introLayouts[2].find((large) => large.asset === card.asset);
 		return {
@@ -90,6 +90,9 @@
 			h: template.h
 		};
 	});
+	// Ten columns fill the 1272-unit measure with a gutter that stays 8 CSS px at any width.
+	$: gutter = 8 / scale;
+	$: columnWidth = (1272 - 9 * gutter) / 10;
 	$: verticalGallery = zoom === 50 && Math.abs(animatedZoom - 50) < 0.1;
 	$: horizontalGallery = zoom === 100 && animatedZoom > 99.9;
 	$: progress = Math.max(0, Math.min(animatedZoom / 50, 1));
@@ -104,8 +107,14 @@
 		const delay = ((index * 7) % 13) * 0.017;
 		return smoothstep(clamp((value - delay) / (1 - delay)));
 	};
-	$: cards = orderedCards.map((middle, index) => {
-		const small = introLayouts[0][index];
+	$: cards = orderedCards.map(({ small, asset, span, column, row, id }, index) => {
+		const aspectRatio = small.h / small.w;
+		const middleWidth = columnWidth * span + gutter * (span - 1);
+		const middle = {
+			x: 84 + column * (columnWidth + gutter),
+			y: 293 + row * 240 - middleWidth * aspectRatio,
+			w: middleWidth
+		};
 		const large = largeCards[index];
 		const middleT = stagger(progress, index);
 		const largeT = stagger(largeProgress, orderedCards.length - index - 1);
@@ -114,11 +123,12 @@
 		const direction = (index % 5) - 2;
 		const motion = reducedMotion ? 0 : 4 * (middleArc + largeArc);
 		const cardWidth = mix(mix(small.w, middle.w, middleT), large.w, largeT);
-		const aspectRatio = small.h / small.w;
 		const largeHeight = large.w * aspectRatio;
 		const largeY = large.y + large.h - largeHeight;
 		return {
-			...middle,
+			id,
+			asset,
+			cropped: span > 1,
 			motion: motion * (0.6 + (index % 5) * 0.1),
 			captionSize: mix(mix(3, 6, middleT), 12, largeT),
 			captionTrailX: -direction * 3 * (middleArc + largeArc),
@@ -337,12 +347,14 @@
 						aria-label={`View ${featuredProjects[card.asset].name}`}
 						on:click={() => dispatch('select', featuredProjects[card.asset].projectId)}
 					>
-						<img
-							src={`/images/intro/image-${card.asset}.jpg`}
-							alt=""
-							draggable="false"
-							style={`height:${card.h * scale}px;`}
-						/>
+						<span class="frame" style={`height:${card.h * scale}px;`}>
+							<img
+								class:cropped={card.cropped}
+								src={`/images/intro/image-${card.asset}.jpg`}
+								alt=""
+								draggable="false"
+							/>
+						</span>
 						<span class="caption">
 							<span>{featuredProjects[card.asset].name}</span>
 							<span>{featuredProjects[card.asset].client}</span>
@@ -391,6 +403,7 @@
 		height: 1px;
 	}
 	.intro {
+		--menu-background: rgb(226 238 117 / 30%);
 		position: relative;
 		width: 100%;
 		min-height: 100vh;
@@ -483,10 +496,23 @@
 		cursor: pointer;
 		will-change: transform;
 	}
+	.frame {
+		display: block;
+		overflow: hidden;
+	}
 	.image-card img {
 		display: block;
 		width: 100%;
+		height: 100%;
 		object-fit: cover;
+	}
+	/* Figma crop of the double-width card. */
+	.image-card img.cropped {
+		position: relative;
+		top: -1.67%;
+		left: -5.02%;
+		width: 116.27%;
+		height: 107.22%;
 	}
 	.caption {
 		display: block;
