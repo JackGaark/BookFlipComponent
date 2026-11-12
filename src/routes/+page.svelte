@@ -5,7 +5,7 @@
   import SlidingIntro from '#lib/components/SlidingIntro.svelte';
   import SplitLanding from '#lib/components/SplitLanding.svelte';
   import { fade } from 'svelte/transition';
-  import PopUp from '#lib/components/PopUp.svelte';
+  import StudioSheet from '#lib/components/StudioSheet.svelte';
   import { initI18n } from '#lib/components/i18n/i18n.js';
   import { onMount, tick } from 'svelte';
   import { checkIsMobile } from '#lib/utils/helpers';
@@ -32,6 +32,15 @@
 
   function hideModal() {
     modalOpen = false;
+  }
+
+  /** @param {string} view */
+  function navigateFromStudio(view) {
+    introView = view;
+    entranceOpen = false;
+    introOpen = true;
+    modalOpen = false;
+    window.scrollTo(0, 0);
   }
 
   // We want the ui to be viewed in landscape on mobile devices.
@@ -1146,7 +1155,7 @@
   </div>
 {:else}
 {#if introOpen}
-  <SlidingIntro bind:zoom={introZoom} initialView={introView} projects={projectsArray.slice(0, MAX_DISPLAY_PROJECT)} studioOpen={modalOpen} on:select={openIntroProject} on:studio={showModal} on:closestudio={hideModal} />
+  <SlidingIntro bind:zoom={introZoom} bind:view={introView} projects={projectsArray.slice(0, MAX_DISPLAY_PROJECT)} studioOpen={modalOpen} on:select={openIntroProject} on:studio={showModal} on:closestudio={hideModal} />
 {:else}
 <header class="project-header">
   <button class="project-logo" aria-label="Super Bonjour home" on:click={() => { introView = 'work'; introOpen = true; window.scrollTo(0, 0); }}>
@@ -1193,7 +1202,7 @@
 </main>
 {/if}
 {/if}
-<PopUp bind:modalOpen isMobile={isMobile && isLandscapeView} />
+<StudioSheet motion="full" open={modalOpen} onclose={hideModal} onnavigate={navigateFromStudio} />
 
 <style>
   .entrance { position: fixed; inset: 0; z-index: 20; overflow: auto; }

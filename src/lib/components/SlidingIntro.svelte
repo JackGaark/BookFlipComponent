@@ -11,8 +11,7 @@
   export let zoom = 0;
   export let projects = [];
   export let studioOpen = false;
-  export let initialView = 'work';
-  let view = initialView;
+  export let view = 'work';
   let reducedMotion = true;
   let animatedZoom = zoom;
   let zoomTrack;
