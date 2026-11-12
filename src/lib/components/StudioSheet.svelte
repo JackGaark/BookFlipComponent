@@ -227,7 +227,7 @@
 		position: fixed;
 		transform: translateY(calc(100% + 40px));
 		transition: transform 750ms cubic-bezier(0.23, 1, 0.32, 1);
-		inset: min(4.545dvh, 40px) 0 0;
+		inset: 40px 0 0;
 		width: auto;
 		max-width: none;
 		height: auto;
@@ -287,7 +287,7 @@
 		grid-row: 1;
 		align-self: start;
 		z-index: 1;
-		margin-top: 8px;
+		margin-top: 18px;
 		padding: 8px 0;
 		font-family: moret, serif;
 		font-size: 10px;
@@ -311,7 +311,7 @@
 		grid-area: 1 / 1 / 2 / -1;
 		overflow: auto;
 		overscroll-behavior: contain;
-		padding: 58px 6.944444% 80px 6.527778%;
+		padding: 74px min(6.944444vw, 100px) 78px min(6.527778vw, 94px);
 		scrollbar-width: none;
 	}
 	h1,
@@ -331,7 +331,7 @@
 	}
 	.main-nav {
 		position: absolute;
-		bottom: 40px;
+		bottom: 30px;
 		left: 50%;
 		transform: translateX(-50%);
 		z-index: 2;
@@ -409,11 +409,6 @@
 		font-size: 10px;
 	}
 	@media (max-width: 600px) {
-		.studio-sheet {
-			left: 0;
-			right: 0;
-			top: 24px;
-		}
 		.sheet-layout {
 			--section-gap: 16px;
 		}
