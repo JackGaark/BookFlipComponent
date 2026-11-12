@@ -181,19 +181,17 @@
 						We work with brands and businesses seeking strategy informed by cultural relevance and
 						design that safeguards value and longevity. We advocate for progressive, sustainable
 						lifestyles and we believe in accountability. We also believe in multiple time
-						dimensions, but that’s beside the point.
-					</p>
-					<p>
-						Contact us if any of that sounds right to you. You can get in touch
+						dimensions, but that’s beside the point. Contact us if any of that sounds right to you.
+						You can get in touch
 						<span class="flower" aria-hidden="true">✿</span>
 						<a href="mailto:salut@superbonjour.com">via email</a>. Or
 						<span class="pencil" aria-hidden="true">✎</span> slide into
 						<a href="https://www.instagram.com/super_bonjour/" target="_blank" rel="noreferrer"
 							>our DMs</a
 						>
-						if that’s your <span class="smile" aria-hidden="true">ツ</span> thing.
+						if that’s your <span class="smile" aria-hidden="true">ツ</span> thing. Super Bonjour is founded
+						by Reanna Evoy (PST) & Vanda Daftari (EST).
 					</p>
-					<p>Super Bonjour is founded by Reanna Evoy (PST) & Vanda Daftari (EST).</p>
 				</div>
 				<p class="contact-links">
 					<a href="mailto:salut@superbonjour.com">GENERAL INQUIRIES</a> ·
@@ -354,7 +352,7 @@
 		position: relative;
 		z-index: 3;
 		margin-top: 104px;
-		padding: 63px min(6.527778vw, 94px) 78px;
+		padding: 117px min(6.527778vw, 94px) 63px;
 		background: #fff;
 		box-shadow: 0 -5px 20px 0 rgb(0 0 255 / 40%);
 	}
@@ -369,11 +367,14 @@
 			transform: translateY(100%);
 		}
 	}
+	.contact h1 {
+		margin: 0;
+	}
 	.contact-copy {
-		margin-top: 32px;
-		font-size: clamp(24px, 2.5vw, 36px);
+		margin-top: 11px;
+		font-size: clamp(24px, 2.916667vw, 42px);
 		font-weight: 500;
-		line-height: 1.44;
+		line-height: 1.25;
 	}
 	.contact-copy p {
 		margin: 0;
@@ -392,7 +393,7 @@
 		color: #fd8204;
 	}
 	.contact-links {
-		margin: 23px 0 46px;
+		margin: 40px 0 46px;
 		line-height: 1.44;
 		font-size: 12px;
 		font-weight: 500;
