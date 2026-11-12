@@ -150,67 +150,66 @@
 		<a class="section-control" href="https://www.superbonjour.com/" target="_blank" rel="noreferrer"
 			>PREVIOUS SITE</a
 		>
-		{#key section}
-			<div class="content" class:contact={section === 'contact'}>
-				{#if section !== 'contact'}
-					<h1>{$_('dialog.title')}</h1>
-					<p class="intro">{$_('dialog.leftText')}</p>
-					<div class="studio-lists">
-						<section aria-labelledby="studio-services-title">
-							<h2 id="studio-services-title">Services</h2>
-							<ul>
-								{#each services as service}<li>{service}</li>{/each}
-							</ul>
-						</section>
-						<section aria-labelledby="studio-clients-title">
-							<h2 id="studio-clients-title">Client List</h2>
-							<ul>
-								{#each clients as client}<li>{client}</li>{/each}
-							</ul>
-						</section>
-					</div>
-				{:else}
-					<h1>Contact</h1>
-					<div class="contact-copy">
-						<p>
-							We work with brands and businesses seeking strategy informed by cultural relevance and
-							design that safeguards value and longevity. We advocate for progressive, sustainable
-							lifestyles and we believe in accountability. We also believe in multiple time
-							dimensions, but that’s beside the point.
-						</p>
-						<p>
-							Contact us if any of that sounds right to you. You can get in touch
-							<span class="flower" aria-hidden="true">✿</span>
-							<a href="mailto:salut@superbonjour.com">via email</a>. Or
-							<span class="pencil" aria-hidden="true">✎</span> slide into
-							<a href="https://www.instagram.com/super_bonjour/" target="_blank" rel="noreferrer"
-								>our DMs</a
-							>
-							if that’s your <span class="smile" aria-hidden="true">ツ</span> thing.
-						</p>
-						<p>Super Bonjour is founded by Reanna Evoy (PST) & Vanda Daftari (EST).</p>
-					</div>
-					<p class="contact-links">
-						<a href="mailto:salut@superbonjour.com">GENERAL INQUIRIES</a> ·
-						<a href="https://www.instagram.com/super_bonjour/" target="_blank" rel="noreferrer"
-							>IG</a
-						>
-						·
-						<a
-							href="https://www.linkedin.com/company/super-bonjour/"
-							target="_blank"
-							rel="noreferrer">LINKEDIN</a
-						>
-					</p>
-					<p class="land-acknowledgment">
-						We acknowledge that in Vancouver we operate on unceded Coast Salish territory of the
-						sḵwx̱wú7mesh (Squamish), sel̓íl̓witulh (Tsleil-Waututh), and xʷməθkʷəy̓əm (Musqueam) nations
-						and that in Tiohtiá:ke (known as Montreal) we operate on the unceded traditional
-						territory of the Kanien’kehá:ka Nation.
-					</p>
-				{/if}
+		<div
+			class="content studio-content"
+			inert={section === 'contact'}
+			aria-hidden={section === 'contact'}
+		>
+			<h1>{$_('dialog.title')}</h1>
+			<p class="intro">{$_('dialog.leftText')}</p>
+			<div class="studio-lists">
+				<section aria-labelledby="studio-services-title">
+					<h2 id="studio-services-title">Services</h2>
+					<ul>
+						{#each services as service}<li>{service}</li>{/each}
+					</ul>
+				</section>
+				<section aria-labelledby="studio-clients-title">
+					<h2 id="studio-clients-title">Client List</h2>
+					<ul>
+						{#each clients as client}<li>{client}</li>{/each}
+					</ul>
+				</section>
 			</div>
-		{/key}
+		</div>
+		{#if section === 'contact'}
+			<div class="content contact">
+				<h1>Contact</h1>
+				<div class="contact-copy">
+					<p>
+						We work with brands and businesses seeking strategy informed by cultural relevance and
+						design that safeguards value and longevity. We advocate for progressive, sustainable
+						lifestyles and we believe in accountability. We also believe in multiple time
+						dimensions, but that’s beside the point.
+					</p>
+					<p>
+						Contact us if any of that sounds right to you. You can get in touch
+						<span class="flower" aria-hidden="true">✿</span>
+						<a href="mailto:salut@superbonjour.com">via email</a>. Or
+						<span class="pencil" aria-hidden="true">✎</span> slide into
+						<a href="https://www.instagram.com/super_bonjour/" target="_blank" rel="noreferrer"
+							>our DMs</a
+						>
+						if that’s your <span class="smile" aria-hidden="true">ツ</span> thing.
+					</p>
+					<p>Super Bonjour is founded by Reanna Evoy (PST) & Vanda Daftari (EST).</p>
+				</div>
+				<p class="contact-links">
+					<a href="mailto:salut@superbonjour.com">GENERAL INQUIRIES</a> ·
+					<a href="https://www.instagram.com/super_bonjour/" target="_blank" rel="noreferrer">IG</a>
+					·
+					<a href="https://www.linkedin.com/company/super-bonjour/" target="_blank" rel="noreferrer"
+						>LINKEDIN</a
+					>
+				</p>
+				<p class="land-acknowledgment">
+					We acknowledge that in Vancouver we operate on unceded Coast Salish territory of the
+					sḵwx̱wú7mesh (Squamish), sel̓íl̓witulh (Tsleil-Waututh), and xʷməθkʷəy̓əm (Musqueam) nations
+					and that in Tiohtiá:ke (known as Montreal) we operate on the unceded traditional territory
+					of the Kanien’kehá:ka Nation.
+				</p>
+			</div>
+		{/if}
 
 		<nav class="main-nav" aria-label="Studio navigation">
 			<button onclick={() => onnavigate('work')}>WORK</button>
@@ -363,8 +362,16 @@
 		font-weight: 500;
 		line-height: 23px;
 	}
-	.studio-sheet:has(.contact) {
+	.contact {
+		position: relative;
+		z-index: 3;
+		margin-top: 104px;
+		padding: 63px min(6.527778vw, 94px) 78px;
+		background: #fff;
 		box-shadow: 0 -5px 20px 0 rgb(0 0 255 / 40%);
+	}
+	.sheet-layout:has(.contact) .main-nav {
+		visibility: hidden;
 	}
 	.studio-sheet[data-reduced-motion='false'] .contact {
 		animation: contact-enter var(--sheet-enter-duration) var(--sheet-enter-easing);
@@ -378,7 +385,7 @@
 		margin-top: 32px;
 		font-size: clamp(24px, 2.5vw, 36px);
 		font-weight: 500;
-		line-height: 1.48;
+		line-height: 1.44;
 	}
 	.contact-copy p {
 		margin: 0;
@@ -397,7 +404,8 @@
 		color: #fd8204;
 	}
 	.contact-links {
-		margin: 16px 0 48px;
+		margin: 23px 0 46px;
+		line-height: 1.44;
 		font-size: 12px;
 		font-weight: 500;
 	}
@@ -407,6 +415,8 @@
 	.land-acknowledgment {
 		margin: 0;
 		font-size: 10px;
+		font-weight: 400;
+		line-height: 1.44;
 	}
 	@media (max-width: 600px) {
 		.sheet-layout {
@@ -414,6 +424,9 @@
 		}
 		.content {
 			padding: 58px 24px 96px;
+		}
+		.contact {
+			padding: 40px 24px 64px;
 		}
 		.intro {
 			font-size: 25px;
