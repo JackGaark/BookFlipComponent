@@ -366,9 +366,12 @@
 		margin: 0 0 12px;
 	}
 	.intro {
-		font-size: clamp(24px, 2.916667vw, 42px);
+		color: #000;
+		font-family: roc-grotesk, sans-serif;
+		font-size: 42px;
+		font-style: normal;
 		font-weight: 500;
-		line-height: 1.25;
+		line-height: 125%;
 		margin: 0;
 	}
 	.studio-lists {
@@ -456,10 +459,6 @@
 		.studio-lists {
 			grid-template-columns: 1fr;
 			gap: 55px;
-		}
-		.intro {
-			font-size: 25px;
-			line-height: 1.35;
 		}
 	}
 </style>
