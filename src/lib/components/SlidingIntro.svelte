@@ -312,7 +312,6 @@
 			<ZoomThumb
 				value={zoom}
 				animate={draggingZoom || settlingThumb}
-				{reducedMotion}
 				onsettled={() => {
 					if (!draggingZoom) settlingThumb = false;
 				}}

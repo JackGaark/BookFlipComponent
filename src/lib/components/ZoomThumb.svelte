@@ -3,18 +3,19 @@
 	import { Spring } from 'svelte/motion';
 	import { CIRCLE, CAPSULE, THUMB_SPRING, thumbAppearance } from './zoom-thumb.js';
 
-	/** @type {{ value: number, animate: boolean, reducedMotion: boolean, onsettled: () => void }} */
-	let { value, animate, reducedMotion, onsettled } = $props();
+	// The morph is drag feedback, so like the Studio sheet it runs even with reduced motion.
+	/** @type {{ value: number, animate: boolean, onsettled: () => void }} */
+	let { value, animate, onsettled } = $props();
 	const thumb = new Spring(
 		untrack(() => value),
 		THUMB_SPRING
 	);
 	const movement = new Spring(0, THUMB_SPRING);
-	const appearance = $derived(thumbAppearance(thumb.current, reducedMotion ? 0 : movement.current));
+	const appearance = $derived(thumbAppearance(thumb.current, movement.current));
 
 	$effect(() => {
 		const target = value;
-		const instant = reducedMotion || !animate;
+		const instant = !animate;
 		const settled = onsettled;
 		let active = true;
 		untrack(() => thumb.set(target, { instant })).then(
