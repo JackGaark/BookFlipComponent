@@ -1,6 +1,7 @@
 <script>
 	import SiteMenu from './SiteMenu.svelte';
 	import { onMount } from 'svelte';
+	import { fly } from 'svelte/transition';
 	import { _ } from 'svelte-i18n';
 
 	/** @type {{open?: boolean, motion?: 'system' | 'full', onclose?: () => void, onnavigate?: (view: string) => void}} */
@@ -9,6 +10,20 @@
 	let sheet = $state();
 	let section = $state('bonjour');
 	let reducedMotion = $state(true);
+
+	// CSS cubic-bezier(0.7, 0, 0.3, 1), evaluated for Svelte's reversible transition.
+	function sheetEasing(progress) {
+		let low = 0;
+		let high = 1;
+		for (let i = 0; i < 20; i++) {
+			const t = (low + high) / 2;
+			const x = 3 * (1 - t) ** 2 * t * 0.7 + 3 * (1 - t) * t ** 2 * 0.3 + t ** 3;
+			if (x < progress) low = t;
+			else high = t;
+		}
+		const t = (low + high) / 2;
+		return 3 * (1 - t) * t ** 2 + t ** 3;
+	}
 	const services = [
 		'Creative Direction',
 		'Brand Strategy, Naming & Strategy',
@@ -190,7 +205,15 @@
 			</div>
 		</div>
 		{#if section === 'contact'}
-			<div class="content contact">
+			<div
+				class="content contact"
+				transition:fly={{
+					y: '100%',
+					opacity: 1,
+					duration: reducedMotion && motion === 'system' ? 0 : 1000,
+					easing: sheetEasing
+				}}
+			>
 				<h1>Contact</h1>
 				<div class="contact-copy">
 					<p>
@@ -245,7 +268,7 @@
 		--sheet-enter-easing: cubic-bezier(0.7, 0, 0.3, 1);
 		position: fixed;
 		transform: translateY(calc(100% + 40px));
-		transition: transform 750ms cubic-bezier(0.23, 1, 0.32, 1);
+		transition: transform var(--sheet-enter-duration) var(--sheet-enter-easing);
 		inset: 40px 0 0;
 		width: auto;
 		max-width: none;
@@ -379,14 +402,6 @@
 	}
 	.sheet-layout:has(.contact) .main-nav {
 		visibility: hidden;
-	}
-	.studio-sheet[data-reduced-motion='false'] .contact {
-		animation: contact-enter var(--sheet-enter-duration) var(--sheet-enter-easing);
-	}
-	@keyframes contact-enter {
-		from {
-			transform: translateY(100%);
-		}
 	}
 	.contact h1 {
 		margin: 0;

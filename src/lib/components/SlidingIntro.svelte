@@ -280,8 +280,6 @@
 	<div class="zoom-track" aria-hidden="true" bind:this={zoomTrack}>
 		<div bind:this={zoomContent}></div>
 	</div>
-	<div class="guide-vertical" aria-hidden="true" />
-	<div class="guide-horizontal" aria-hidden="true" />
 	<SiteLogo
 		dark
 		onclick={() => {
@@ -383,25 +381,6 @@
 		height: 1001px;
 	}
 
-	.guide-vertical,
-	.guide-horizontal {
-		position: fixed;
-		z-index: 10;
-		background: #ff0000;
-		pointer-events: none;
-	}
-	.guide-vertical {
-		top: 0;
-		bottom: 0;
-		left: 74.26px;
-		width: 1px;
-	}
-	.guide-horizontal {
-		top: 38.07px;
-		left: 0;
-		right: 0;
-		height: 1px;
-	}
 	.intro {
 		--menu-background: rgb(226 238 117 / 30%);
 		position: relative;

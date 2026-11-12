@@ -28,14 +28,14 @@ it('opens Studio, switches sections, navigates and restores scrolling after dism
 	expect(studioContent?.scrollTop).toBe(studioScroll);
 	expect(studioContent?.hasAttribute('inert')).toBe(true);
 	dialog.querySelectorAll('.section-control')[0].click();
-	await expect.poll(() => dialog.querySelector('.contact')).toBeNull();
+	await expect.poll(() => dialog.querySelector('.contact'), { timeout: 3000 }).toBeNull();
 	expect(studioContent?.scrollTop).toBe(studioScroll);
 	dialog.querySelector('.main-nav nav')?.querySelectorAll('button')[1].click();
 	expect(onnavigate).toHaveBeenCalledWith('index');
 	dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
 	expect(onclose).toHaveBeenCalledOnce();
 	await screen.rerender({ open: false });
-	await expect.poll(() => dialog.open).toBe(false);
+	await expect.poll(() => dialog.open, { timeout: 3000 }).toBe(false);
 	expect(document.body.style.overflow).toBe(originalOverflow);
 });
 
@@ -56,7 +56,7 @@ it('reverses an opening sheet without jumping and resets content when reopened',
 		.toBe(0);
 	expect(dialog.open).toBe(true);
 	await screen.rerender({ open: false });
-	await expect.poll(() => dialog.open).toBe(false);
+	await expect.poll(() => dialog.open, { timeout: 3000 }).toBe(false);
 });
 
 it('keeps the full-width sheet scrollable and its navigation visible on desktop and mobile', async () => {
@@ -82,7 +82,7 @@ it('keeps the full-width sheet scrollable and its navigation visible on desktop 
 		844
 	);
 	await screen.rerender({ open: false });
-	await expect.poll(() => dialog.open).toBe(false);
+	await expect.poll(() => dialog.open, { timeout: 3000 }).toBe(false);
 });
 
 it('rises over 1000ms with a slow start and finish', async () => {
@@ -111,7 +111,7 @@ it('rises over 1000ms with a slow start and finish', async () => {
 	}
 	animation.finish();
 	await screen.rerender({ open: false });
-	await expect.poll(() => dialog.open).toBe(false);
+	await expect.poll(() => dialog.open, { timeout: 3000 }).toBe(false);
 });
 
 it('visibly travels upward on both first open and reopen', async () => {
@@ -131,6 +131,30 @@ it('visibly travels upward on both first open and reopen', async () => {
 			.poll(() => Math.round(dialog.getBoundingClientRect().top), { timeout: 3000 })
 			.toBe(40);
 		await screen.rerender({ open: false });
-		await expect.poll(() => dialog.open).toBe(false);
+		await expect.poll(() => dialog.open, { timeout: 3000 }).toBe(false);
 	}
 }, 12000);
+
+it('slides Contact down when returning to Bonjour, Hi', async () => {
+	initI18n();
+	const screen = render(StudioSheet, { open: true, motion: 'full' });
+	const dialog = screen.container.querySelector('dialog');
+	if (!dialog) throw new Error('Studio dialog missing');
+	await expect
+		.poll(() => new DOMMatrix(getComputedStyle(dialog).transform).m42, { timeout: 4000 })
+		.toBe(0);
+	dialog.querySelectorAll('.section-control')[1].click();
+	await expect.poll(() => dialog.querySelector('.contact')).not.toBeNull();
+	const contact = dialog.querySelector('.contact');
+	if (!contact) throw new Error('Contact sheet missing');
+	await new Promise((resolve) => setTimeout(resolve, 1100));
+	dialog.querySelectorAll('.section-control')[0].click();
+	await new Promise((resolve) => setTimeout(resolve, 500));
+	expect(contact.isConnected).toBe(true);
+	const position = new DOMMatrix(getComputedStyle(contact).transform).m42;
+	expect(position).toBeGreaterThan(contact.clientHeight * 0.25);
+	expect(position).toBeLessThan(contact.clientHeight * 0.75);
+	await expect.poll(() => contact.isConnected, { timeout: 3000 }).toBe(false);
+	await screen.rerender({ open: false });
+	await expect.poll(() => dialog.open, { timeout: 3000 }).toBe(false);
+}, 8000);
