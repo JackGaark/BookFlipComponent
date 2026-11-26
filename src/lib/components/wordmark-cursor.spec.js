@@ -1,15 +1,15 @@
 import { expect, it } from 'vitest';
-import { wordmarkFrame, DIAL_LOOP_STOPS, dialBeat, stepDial } from './wordmark-cursor.js';
-it('has twelve angular stops and closes after sixteen travel stops', () => {
+import { wordmarkFrame, DIAL_LOOP_STOPS, NEEDLE_COUNT, dialBeat, stepDial } from './wordmark-cursor.js';
+it('has twelve angular stops and closes after seventeen travel stops', () => {
 	for (let position = 0; position <= DIAL_LOOP_STOPS; position++) {
 		const { angles } = wordmarkFrame(position);
 		angles.forEach((angle) => expect(angle / 30).toBeCloseTo(Math.round(angle / 30)));
-		expect(angles[0] - angles[4]).toBeLessThanOrEqual(120.00001);
+		expect(angles[0] - angles[NEEDLE_COUNT - 1]).toBeLessThanOrEqual(150.00001);
 	}
 	expect(wordmarkFrame(12).angles[0]).toBe(540);
-	expect(wordmarkFrame(16)).toEqual(wordmarkFrame(0));
+	expect(wordmarkFrame(17)).toEqual(wordmarkFrame(0));
 	expect(wordmarkFrame(0).mask).toBe('none');
-	expect(wordmarkFrame(-1)).toEqual(wordmarkFrame(15));
+	expect(wordmarkFrame(-1)).toEqual(wordmarkFrame(16));
 });
 
 it('keeps one stop per cut through fractional frames, tempo changes and side switches', () => {

@@ -1,21 +1,25 @@
-export const DIAL_LOOP_STOPS = 16;
+export const NEEDLE_COUNT = 6;
+/** The last needle starts NEEDLE_COUNT - 1 stops late and needs twelve stops to close. */
+export const DIAL_LOOP_STOPS = 12 + NEEDLE_COUNT - 1;
 export const ARTBOARD_SIZE = 132.9024;
-export const CURSOR_SCALE = 0.5;
+/** Renders the S at 20px, the same letter height as the long Super Bonjour logo. */
+export const CURSOR_SCALE = 20 / 71.8391;
 
-/** Five needles follow one another at twelve stops per revolution.
+/** NEEDLE_COUNT needles follow one another at twelve stops per revolution.
  * @param {number} position
  */
 export function wordmarkFrame(position) {
 	const progress = ((position % DIAL_LOOP_STOPS) + DIAL_LOOP_STOPS) % DIAL_LOOP_STOPS;
-	const angles = Array.from({ length: 5 }, (_, index) => {
+	const angles = Array.from({ length: NEEDLE_COUNT }, (_, index) => {
 		const turn = Math.max(0, Math.min(1, (progress - index) / 12));
 		return 180 + turn * 360;
 	});
-	const sweep = angles[0] - angles[4];
+	const last = angles[NEEDLE_COUNT - 1];
+	const sweep = angles[0] - last;
 	const mask =
 		sweep < 0.001
 			? 'none'
-			: `conic-gradient(from ${angles[4]}deg, transparent 0deg ${sweep}deg, #000 ${sweep}deg 360deg)`;
+			: `conic-gradient(from ${last}deg, transparent 0deg ${sweep}deg, #000 ${sweep}deg 360deg)`;
 	return { angles, mask };
 }
 

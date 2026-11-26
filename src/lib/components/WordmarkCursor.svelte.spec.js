@@ -8,13 +8,13 @@ it('uses the original artwork and preserves wipe progress through pauses and rev
 	const image = artwork.querySelector('.letter-b');
 	const images = [...screen.container.querySelectorAll('img')];
 	await expect.poll(() => images.every((img) => img.complete && img.naturalWidth > 0)).toBe(true);
-	expect(images).toHaveLength(7);
+	expect(images).toHaveLength(8);
 	const letterS = artwork.querySelector('.letter-s');
-	expect(letterS.getBoundingClientRect().width).toBeCloseTo(24.00445, 1);
-	expect(letterS.getBoundingClientRect().height).toBeCloseTo(35.91955, 1);
+	expect(letterS.getBoundingClientRect().width).toBeCloseTo(13.36567, 1);
+	expect(letterS.getBoundingClientRect().height).toBeCloseTo(20.00000, 1);
 	await expect.poll(() => image.complete && image.naturalWidth > 0).toBe(true);
-	expect(image.getBoundingClientRect().width).toBeCloseTo(22.85545, 1);
-	expect(image.getBoundingClientRect().height).toBeCloseTo(34.44645, 1);
+	expect(image.getBoundingClientRect().width).toBeCloseTo(12.72591, 1);
+	expect(image.getBoundingClientRect().height).toBeCloseTo(19.17978, 1);
 	expect(getComputedStyle(screen.container.firstElementChild).pointerEvents).toBe('none');
 
 	screen.component.setDialPosition(4);

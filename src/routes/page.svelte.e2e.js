@@ -60,7 +60,7 @@ test('landing dial paints a stop at cuts on both halves at centre, middle and ed
 			.toBeGreaterThanOrEqual(2);
 		const samples = await page.evaluate(() => window.cutSamples);
 		for (const angles of samples) {
-			expect(angles).toHaveLength(5);
+			expect(angles).toHaveLength(6);
 			for (const angle of angles) expect(angle / 30).toBeCloseTo(Math.round(angle / 30));
 		}
 	}
