@@ -182,21 +182,20 @@
 		line-height: 43px;
 		cursor: pointer;
 	}
-	/* Figma sets the year as a 36px Moret superscript: it draws at 0.645em, raised 12px, with
-	   the 1px underline 10.2px above the row's baseline (1.8px under the raised figures). */
+	/* Figma sets the year in 36px Moret with its superscript glyphs ('sups'), which the font draws
+	   already raised and reduced, so the span stays on the row's baseline at full size. The 1px
+	   underline sits 10px (at 36px) above that baseline, just under the figures. */
 	.year {
-		position: relative;
-		top: -0.517em;
 		font-family: moret, serif;
-		font-size: 0.645em;
 		font-style: normal;
 		font-weight: 400;
+		font-feature-settings: 'sups' 1;
 		line-height: 0;
 		text-decoration-line: underline;
 		text-decoration-style: solid;
 		text-decoration-skip-ink: auto;
 		text-decoration-thickness: 1px;
-		text-underline-offset: 0.0775em;
+		text-underline-offset: -0.278em;
 	}
 	.project-row.highlighted {
 		color: #bd62ff;
