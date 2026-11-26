@@ -341,7 +341,7 @@
 						class="image-card"
 						style={`transform:translate(${card.x * scale}px,${card.y * scale}px);width:${
 							card.w * scale
-						}px;--caption-size:${card.captionSize * scale}px;--caption-motion:${card.motion}px;--caption-trail-x:${card.captionTrailX}px;--caption-trail-y:${card.captionTrailY}px;`}
+						}px;--caption-size:${card.captionSize}px;--caption-motion:${card.motion}px;--caption-trail-x:${card.captionTrailX}px;--caption-trail-y:${card.captionTrailY}px;`}
 						aria-label={`View ${featuredProjects[card.asset].name}`}
 						on:click={() => dispatch('select', featuredProjects[card.asset].projectId)}
 					>
@@ -512,6 +512,8 @@
 		transform: translateY(calc(var(--caption-motion) * 2));
 	}
 	.caption > span:nth-child(3) {
+		font-family: moret, serif;
+		font-weight: 400;
 		transform: translateY(calc(var(--caption-motion) * 3));
 	}
 	.image-card:hover,
@@ -536,9 +538,6 @@
 		outline: 2px solid #bd62ff;
 	}
 	@media (max-width: 720px) {
-		.caption {
-			font-size: max(6px, var(--caption-size));
-		}
 		.control {
 			--hit: 25px;
 			top: 64px;
