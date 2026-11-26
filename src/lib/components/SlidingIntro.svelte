@@ -261,9 +261,12 @@
 	function handleGalleryWheel(event) {
 		if (event.ctrlKey) return;
 		alignGallery(event);
-		if (!horizontalGallery || !scroller || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+		if (!horizontalGallery || !scroller) return;
+		// Claim every wheel event in the horizontal row, so the vertical part of a diagonal
+		// trackpad swipe can't leak to the page and slide the images up under the fixed line.
 		event.preventDefault();
-		scroller.scrollLeft += event.deltaY;
+		scroller.scrollLeft +=
+			Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
 	}
 </script>
 
@@ -300,6 +303,7 @@
 		onstudio={() => dispatch('studio')}
 	/>
 	{#if view === 'work'}
+		<div class="header-mask" aria-hidden="true"></div>
 		<div class="control" data-snapped={snappedZoom !== null}>
 			<input
 				bind:this={zoomInput}
@@ -389,10 +393,28 @@
 		background: white;
 		color: #000;
 	}
+	/* Header geometry: the line is centred in the 35px slider, so it sits at --line-y. */
+	.intro {
+		--control-top: max(64px, 4.4vw);
+		--line-y: calc(var(--control-top) + 17.5px);
+	}
+	/* White band behind the fixed header: if the page scrolls, images slide under it and
+	   disappear 12px below the line instead of touching it. */
+	.header-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: calc(var(--line-y) + 12px);
+		background: white;
+		z-index: 1;
+		pointer-events: none;
+	}
 	.control {
 		--hit: 35px;
-		position: absolute;
-		top: max(64px, 4.4vw);
+		/* Fixed like SiteLogo, so page scroll can never slide the line into the logo. */
+		position: fixed;
+		top: var(--control-top);
 		left: 5.15%;
 		right: 5.85%;
 		z-index: 2;
@@ -441,7 +463,7 @@
 	}
 	.gallery-scroll {
 		padding-bottom: 80px;
-		padding-top: max(0px, calc(90px - 7.85vw));
+		padding-top: max(0px, calc(90px - 7.85vw), calc(var(--line-y) + 24px - 7.85vw));
 		overflow: auto;
 		overscroll-behavior-x: contain;
 	}
@@ -538,9 +560,12 @@
 		outline: 2px solid #bd62ff;
 	}
 	@media (max-width: 720px) {
+		.intro {
+			--control-top: 64px;
+			--line-y: calc(var(--control-top) + 12.5px);
+		}
 		.control {
 			--hit: 25px;
-			top: 64px;
 		}
 	}
 </style>

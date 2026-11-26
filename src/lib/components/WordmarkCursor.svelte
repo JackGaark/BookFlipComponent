@@ -1,18 +1,23 @@
 <svelte:options runes={false} />
 
 <script>
-	import { ARTBOARD_SIZE, CURSOR_SCALE, wordmarkFrame } from './wordmark-cursor.js';
+	import { ARTBOARD_SIZE, CURSOR_SCALE, NEEDLE_COUNT, wordmarkFrame } from './wordmark-cursor.js';
 
 	/** @type {HTMLDivElement} */
 	let artwork;
 	/** @type {HTMLImageElement[]} */
 	let pages = [];
 
+	/** The stop painted at the most recent image cut (cuts always arrive as whole numbers). */
+	let lastStop = 0;
+
 	/** Keep the letters, erase sector and page edges on the same reversible clock. */
 	export function setDialPosition(position) {
 		if (!artwork) return;
+		if (Number.isInteger(position)) lastStop = position;
 		const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-		const frame = wordmarkFrame(reduced ? Math.round(position) : position);
+		// Reduced motion holds the last cut's stop, so the dial ticks exactly when the image cuts.
+		const frame = wordmarkFrame(reduced ? lastStop : position);
 		artwork.style.maskImage = frame.mask;
 		artwork.style.webkitMaskImage = frame.mask;
 		pages.forEach((page, index) => {
@@ -51,13 +56,13 @@
 				draggable="false"
 			/>
 		</div>
-		{#each [0, 1, 2, 3, 4] as index}
+		{#each Array.from({ length: NEEDLE_COUNT }, (_, i) => i) as index}
 			<img
 				class="wordmark-cursor__page"
 				bind:this={pages[index]}
 				src="/images/cursor/page-line.svg"
 				width="66.4512"
-				height="3.59196"
+				height="8.0819"
 				alt=""
 				draggable="false"
 			/>
